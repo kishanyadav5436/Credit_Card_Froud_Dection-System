@@ -6,6 +6,15 @@ import AlertsPage from "./pages/AlertsPage";
 import ModelMonitoringPage from "./pages/ModelMonitoringPage";
 import LoginPage from "./pages/LoginPage";
 
+function InvestigationPage() {
+  return (
+    <div style={{ padding: "40px" }}>
+      <h1>Investigations</h1>
+      <p>Investigation workspace coming next.</p>
+    </div>
+  );
+}
+
 const router = [
   {
     path: "/",
@@ -26,6 +35,10 @@ const router = [
   {
     path: "/alerts",
     element: <AlertsPage />,
+  },
+  {
+    path: "/investigations",
+    element: <InvestigationPage />,
   },
   {
     path: "/model-monitoring",
