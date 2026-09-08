@@ -3,17 +3,9 @@ import { Navigate } from "react-router-dom";
 import DashboardPage from "./pages/DashboardPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import AlertsPage from "./pages/AlertsPage";
+import InvestigationPage from "./pages/investigation/InvestigationPage";
 import ModelMonitoringPage from "./pages/ModelMonitoringPage";
 import LoginPage from "./pages/LoginPage";
-
-function InvestigationPage() {
-  return (
-    <div style={{ padding: "40px" }}>
-      <h1>Investigations</h1>
-      <p>Investigation workspace coming next.</p>
-    </div>
-  );
-}
 
 const router = [
   {

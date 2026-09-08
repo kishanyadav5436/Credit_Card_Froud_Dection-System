@@ -1505,3 +1505,73 @@ a {
     flex-wrap: wrap;
   }
 }
+/* ==========================================
+   ANALYST NOTE
+========================================== */
+
+.decision-note {
+  margin-top: 18px;
+}
+
+.decision-note label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.decision-note textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid var(--border-color, #d9dee7);
+  border-radius: 8px;
+  background: #fff;
+  color: #172033;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.decision-note textarea:focus {
+  border-color: #2563eb;
+}
+
+/* ==========================================
+   SAVE DECISION
+========================================== */
+
+.save-decision-button {
+  width: 100%;
+  margin-top: 14px;
+  padding: 11px 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #172033;
+  color: white;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.save-decision-button:hover {
+  opacity: 0.9;
+}
+
+.save-decision-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

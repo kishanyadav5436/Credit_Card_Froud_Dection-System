@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   RefreshCw,
@@ -34,6 +35,8 @@ function AlertsPage() {
   const [severity, setSeverity] = useState("All");
   const [selectedAlert, setSelectedAlert] = useState(null);
 
+  const navigate = useNavigate();
+
   const filteredAlerts = useMemo(() => {
     return alerts.filter((alert) => {
       const searchValue = search.toLowerCase();
@@ -41,21 +44,15 @@ function AlertsPage() {
       const matchesSearch =
         alert.id.toLowerCase().includes(searchValue) ||
         alert.type.toLowerCase().includes(searchValue) ||
-        alert.transactionId
-          .toLowerCase()
-          .includes(searchValue) ||
-        alert.customerName
-          .toLowerCase()
-          .includes(searchValue) ||
+        alert.transactionId.toLowerCase().includes(searchValue) ||
+        alert.customerName.toLowerCase().includes(searchValue) ||
         alert.merchant.toLowerCase().includes(searchValue);
 
       const matchesTab =
-        activeTab === "All" ||
-        alert.status === activeTab;
+        activeTab === "All" || alert.status === activeTab;
 
       const matchesSeverity =
-        severity === "All" ||
-        alert.severity === severity;
+        severity === "All" || alert.severity === severity;
 
       return (
         matchesSearch &&
@@ -131,27 +128,23 @@ function AlertsPage() {
 
             <div className="alerts-toolbar">
               <div className="alert-tabs">
-                {["Active", "Resolved", "All"].map(
-                  (tab) => (
-                    <button
-                      key={tab}
-                      className={
-                        activeTab === tab
-                          ? "alert-tab active"
-                          : "alert-tab"
-                      }
-                      onClick={() =>
-                        setActiveTab(tab)
-                      }
-                    >
-                      {tab}
+                {["Active", "Resolved", "All"].map((tab) => (
+                  <button
+                    key={tab}
+                    className={
+                      activeTab === tab
+                        ? "alert-tab active"
+                        : "alert-tab"
+                    }
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {tab}
 
-                      {tab === "Active" && (
-                        <span>{activeCount}</span>
-                      )}
-                    </button>
-                  )
-                )}
+                    {tab === "Active" && (
+                      <span>{activeCount}</span>
+                    )}
+                  </button>
+                ))}
               </div>
 
               <div className="alert-actions">
@@ -169,6 +162,7 @@ function AlertsPage() {
                   {search && (
                     <button
                       onClick={() => setSearch("")}
+                      aria-label="Clear search"
                     >
                       <X size={14} />
                     </button>
@@ -182,27 +176,18 @@ function AlertsPage() {
                     setSeverity(event.target.value)
                   }
                 >
-                  <option value="All">
-                    All Severity
-                  </option>
-                  <option value="Critical">
-                    Critical
-                  </option>
-                  <option value="High">
-                    High
-                  </option>
-                  <option value="Medium">
-                    Medium
-                  </option>
-                  <option value="Low">
-                    Low
-                  </option>
+                  <option value="All">All Severity</option>
+                  <option value="Critical">Critical</option>
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
                 </select>
 
                 <button
                   className="refresh-button"
                   onClick={clearFilters}
                   title="Reset filters"
+                  aria-label="Reset filters"
                 >
                   <RefreshCw size={15} />
                 </button>
@@ -211,9 +196,7 @@ function AlertsPage() {
 
             <div className="alert-result-count">
               Showing{" "}
-              <strong>
-                {filteredAlerts.length}
-              </strong>{" "}
+              <strong>{filteredAlerts.length}</strong>{" "}
               alerts
             </div>
 
@@ -278,9 +261,7 @@ function AlertsPage() {
                               {alert.customerName}
                             </strong>
 
-                            <span>
-                              {alert.customerId}
-                            </span>
+                            <span>{alert.customerId}</span>
                           </div>
                         </td>
 
@@ -305,6 +286,7 @@ function AlertsPage() {
                             onClick={() =>
                               setSelectedAlert(alert)
                             }
+                            aria-label={`View ${alert.id}`}
                           >
                             <Eye size={16} />
                           </button>
@@ -337,7 +319,10 @@ function AlertsPage() {
         title={selectedAlert?.id || "Alert"}
       >
         {selectedAlert && (
-          <AlertDetails alert={selectedAlert} />
+          <AlertDetails
+            alert={selectedAlert}
+            navigate={navigate}
+          />
         )}
       </Drawer>
     </div>
@@ -371,7 +356,15 @@ function SummaryCard({
    ALERT DETAILS
 ========================================== */
 
-function AlertDetails({ alert }) {
+function AlertDetails({ alert, navigate }) {
+  const handleInvestigation = () => {
+    navigate(
+      `/investigations?transactionId=${encodeURIComponent(
+        alert.transactionId
+      )}&alertId=${encodeURIComponent(alert.id)}`
+    );
+  };
+
   return (
     <div className="alert-details">
       {/* HEADER */}
@@ -384,9 +377,7 @@ function AlertDetails({ alert }) {
         <div className="alert-detail-risk">
           <span>Risk Score</span>
 
-          <RiskScoreBadge
-            score={alert.riskScore}
-          />
+          <RiskScoreBadge score={alert.riskScore} />
         </div>
       </div>
 
@@ -474,7 +465,7 @@ function AlertDetails({ alert }) {
           {alert.reasons.map((reason, index) => (
             <div
               className="alert-reason"
-              key={reason}
+              key={`${reason}-${index}`}
             >
               <span>{index + 1}</span>
               <p>{reason}</p>
@@ -485,7 +476,10 @@ function AlertDetails({ alert }) {
 
       {/* ACTION */}
 
-      <button className="investigate-button">
+      <button
+        className="investigate-button"
+        onClick={handleInvestigation}
+      >
         Start Investigation
         <ArrowRight size={16} />
       </button>
