@@ -1,16 +1,14 @@
 import {
-  LayoutDashboard,
-  CreditCard,
-  BellRing,
-  Search,
   BrainCircuit,
-  Settings,
-  ShieldCheck,
+  CreditCard,
+  LayoutDashboard,
   LogOut,
+  Search,
+  ShieldAlert,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
-const menuItems = [
+const navigation = [
   {
     label: "Dashboard",
     path: "/dashboard",
@@ -24,7 +22,7 @@ const menuItems = [
   {
     label: "Alerts",
     path: "/alerts",
-    icon: BellRing,
+    icon: ShieldAlert,
   },
   {
     label: "Investigations",
@@ -39,51 +37,59 @@ const menuItems = [
 ];
 
 function Sidebar() {
+  const navigate = useNavigate();
+
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo">
-        <div className="logo-icon">
-          <ShieldCheck size={22} />
+      <div className="sidebar-brand">
+        <div className="sidebar-brand-icon">
+          <ShieldAlert size={21} />
         </div>
 
         <div>
-          <h2>FraudGuard</h2>
+          <strong>FraudGuard</strong>
           <span>Risk Intelligence</span>
         </div>
       </div>
 
-      <div className="sidebar-section">
-        <p className="sidebar-title">OPERATIONS</p>
+      <nav className="sidebar-nav">
+        <span className="sidebar-section-title">
+          Monitoring
+        </span>
 
-        <nav className="sidebar-nav">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `nav-item ${isActive ? "active" : ""}`
-                }
-              >
-                <Icon size={19} />
-                <span>{item.label}</span>
-              </NavLink>
-            );
-          })}
-        </nav>
-      </div>
+        {navigation.map(({ label, path, icon: Icon }) => (
+          <NavLink
+            key={path}
+            to={path}
+            className={({ isActive }) =>
+              isActive
+                ? "sidebar-link active"
+                : "sidebar-link"
+            }
+          >
+            <Icon size={18} />
+            <span>{label}</span>
+          </NavLink>
+        ))}
+      </nav>
 
       <div className="sidebar-bottom">
-        <NavLink to="/settings" className="nav-item">
-          <Settings size={19} />
-          <span>Settings</span>
-        </NavLink>
+        <div className="sidebar-user">
+          <div className="sidebar-avatar">KK</div>
 
-        <button className="logout-button">
-          <LogOut size={19} />
-          <span>Sign out</span>
+          <div>
+            <strong>Kishan Kumar</strong>
+            <span>Fraud Analyst</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="sidebar-logout"
+          onClick={() => navigate("/login")}
+        >
+          <LogOut size={17} />
+          <span>Logout</span>
         </button>
       </div>
     </aside>

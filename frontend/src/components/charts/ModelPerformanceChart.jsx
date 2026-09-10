@@ -1,31 +1,19 @@
 import {
-  ResponsiveContainer,
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
 } from "recharts";
 
 function ModelPerformanceChart({ performance }) {
   const data = [
-    {
-      metric: "Precision",
-      value: performance.precision,
-    },
-    {
-      metric: "Recall",
-      value: performance.recall,
-    },
-    {
-      metric: "F1 Score",
-      value: performance.f1Score,
-    },
-    {
-      metric: "ROC-AUC",
-      value: performance.rocAuc,
-    },
+    { metric: "Precision", value: performance.precision },
+    { metric: "Recall", value: performance.recall },
+    { metric: "F1 Score", value: performance.f1Score },
+    { metric: "ROC-AUC", value: performance.rocAuc },
   ];
 
   return (
@@ -50,10 +38,7 @@ function ModelPerformanceChart({ performance }) {
             />
 
             <Tooltip
-              formatter={(value) => [
-                `${value}%`,
-                "Score",
-              ]}
+              formatter={(value) => [`${value}%`, "Score"]}
             />
 
             <Bar

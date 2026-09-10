@@ -1,6 +1,9 @@
 import { Bell, Search, UserCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function TopBar() {
+  const navigate = useNavigate();
+
   return (
     <header className="topbar">
       <div className="topbar-search">
@@ -9,25 +12,37 @@ function TopBar() {
         <input
           type="text"
           placeholder="Search transactions, alerts, customers..."
+          aria-label="Search"
         />
 
         <span className="search-shortcut">⌘ K</span>
       </div>
 
       <div className="topbar-actions">
-        <button className="icon-button notification-button">
-          <Bell size={20} />
-          <span className="notification-dot"></span>
+        <button
+          type="button"
+          className="icon-button"
+          onClick={() => navigate("/alerts")}
+          aria-label="View alerts"
+          title="View alerts"
+        >
+          <Bell size={21} />
+          <span className="notification-dot" />
         </button>
 
-        <div className="user-profile">
-          <UserCircle size={34} />
+        <button
+          type="button"
+          className="user-profile"
+          onClick={() => console.log("Profile clicked")}
+          aria-label="User profile"
+        >
+          <UserCircle size={38} />
 
           <div>
             <strong>Fraud Analyst</strong>
             <span>Risk Operations</span>
           </div>
-        </div>
+        </button>
       </div>
     </header>
   );
