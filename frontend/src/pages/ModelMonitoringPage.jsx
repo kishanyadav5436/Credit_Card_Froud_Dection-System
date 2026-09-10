@@ -10,6 +10,10 @@ import {
 import Sidebar from "../components/layout/Sidebar";
 import TopBar from "../components/layout/TopBar";
 
+
+import ModelPerformanceChart from "../components/charts/ModelPerformanceChart";
+import FeatureDriftChart from "../components/charts/FeatureDriftChart";
+
 import useModelMetrics from "../hooks/useModelMetrics";
 import useFeatureDrift from "../hooks/useFeatureDrift";
 
@@ -17,11 +21,13 @@ function ModelMonitoring() {
   const {
     data: metrics,
     isLoading: metricsLoading,
+    isError: metricsError,
   } = useModelMetrics();
 
   const {
     data: featureDrift,
     isLoading: driftLoading,
+    isError: driftError,
   } = useFeatureDrift();
 
   if (metricsLoading || driftLoading) {
@@ -40,6 +46,38 @@ function ModelMonitoring() {
     );
   }
 
+  if (
+    metricsError ||
+    driftError ||
+    !metrics ||
+    !featureDrift
+  ) {
+    return (
+      <div className="app-shell">
+        <Sidebar />
+
+        <div className="main-area">
+          <TopBar />
+
+          <main className="dashboard-content">
+            <div className="empty-state">
+              <AlertTriangle size={32} />
+
+              <h3>
+                Model monitoring unavailable
+              </h3>
+
+              <p>
+                Unable to load model monitoring data.
+                Please try again.
+              </p>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
       <Sidebar />
@@ -48,6 +86,9 @@ function ModelMonitoring() {
         <TopBar />
 
         <main className="dashboard-content">
+
+          {/* PAGE HEADER */}
+
           <div className="page-header">
             <div>
               <h1>Model Monitoring</h1>
@@ -78,11 +119,12 @@ function ModelMonitoring() {
 
             <div className="model-status">
               <CheckCircle2 size={16} />
+
               {metrics.status}
             </div>
           </section>
 
-          {/* PERFORMANCE */}
+          {/* MODEL PERFORMANCE */}
 
           <section className="monitor-section">
             <div className="section-heading">
@@ -128,7 +170,23 @@ function ModelMonitoring() {
             </div>
           </section>
 
-          {/* PREDICTIONS */}
+          {/* CHARTS */}
+
+          <section className="monitor-section">
+            <div className="model-charts-grid">
+
+              <ModelPerformanceChart
+                performance={metrics.performance}
+              />
+
+              <FeatureDriftChart
+                data={featureDrift}
+              />
+
+            </div>
+          </section>
+
+          {/* PREDICTION OVERVIEW */}
 
           <section className="monitor-section">
             <div className="section-heading">
@@ -162,7 +220,7 @@ function ModelMonitoring() {
             </div>
           </section>
 
-          {/* DRIFT */}
+          {/* MODEL DRIFT */}
 
           <section className="monitor-section">
             <div className="section-heading">
@@ -177,11 +235,13 @@ function ModelMonitoring() {
 
               <div className="drift-status">
                 <CheckCircle2 size={15} />
+
                 {metrics.drift.status}
               </div>
             </div>
 
             <div className="drift-overview">
+
               <div className="drift-card">
                 <span>Feature Drift</span>
 
@@ -190,7 +250,8 @@ function ModelMonitoring() {
                 </strong>
 
                 <small>
-                  Threshold: {metrics.drift.threshold}%
+                  Threshold:{" "}
+                  {metrics.drift.threshold}%
                 </small>
               </div>
 
@@ -202,13 +263,15 @@ function ModelMonitoring() {
                 </strong>
 
                 <small>
-                  Threshold: {metrics.drift.threshold}%
+                  Threshold:{" "}
+                  {metrics.drift.threshold}%
                 </small>
               </div>
+
             </div>
           </section>
 
-          {/* FEATURE DRIFT */}
+          {/* FEATURE DRIFT TABLE */}
 
           <section className="monitor-section">
             <div className="section-heading">
@@ -234,13 +297,16 @@ function ModelMonitoring() {
                 <tbody>
                   {featureDrift.map((item) => (
                     <tr key={item.feature}>
+
                       <td>
                         <strong>
                           {item.feature}
                         </strong>
                       </td>
 
-                      <td>{item.drift}%</td>
+                      <td>
+                        {item.drift}%
+                      </td>
 
                       <td>
                         <span
@@ -253,6 +319,7 @@ function ModelMonitoring() {
                           {item.status}
                         </span>
                       </td>
+
                     </tr>
                   ))}
                 </tbody>
@@ -287,15 +354,20 @@ function ModelMonitoring() {
                 <tbody>
                   {metrics.versions.map((model) => (
                     <tr key={model.version}>
+
                       <td>
                         <strong>
                           {model.version}
                         </strong>
                       </td>
 
-                      <td>{model.deployedAt}</td>
+                      <td>
+                        {model.deployedAt}
+                      </td>
 
-                      <td>{model.accuracy}%</td>
+                      <td>
+                        {model.accuracy}%
+                      </td>
 
                       <td>
                         <span
@@ -309,17 +381,23 @@ function ModelMonitoring() {
                           {model.status}
                         </span>
                       </td>
+
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </section>
+
         </main>
       </div>
     </div>
   );
 }
+
+/* ==========================================
+   METRIC CARD
+========================================== */
 
 function MetricCard({
   icon: Icon,
@@ -328,6 +406,7 @@ function MetricCard({
 }) {
   return (
     <div className="monitor-metric-card">
+
       <div className="monitor-card-icon">
         <Icon size={18} />
       </div>
@@ -335,9 +414,14 @@ function MetricCard({
       <span>{label}</span>
 
       <strong>{value}</strong>
+
     </div>
   );
 }
+
+/* ==========================================
+   PREDICTION CARD
+========================================== */
 
 function PredictionCard({
   icon: Icon,
@@ -346,6 +430,7 @@ function PredictionCard({
 }) {
   return (
     <div className="prediction-card">
+
       <div className="prediction-icon">
         <Icon size={18} />
       </div>
@@ -354,9 +439,10 @@ function PredictionCard({
         <span>{label}</span>
 
         <strong>
-          {value.toLocaleString("en-IN")}
+          {Number(value).toLocaleString("en-IN")}
         </strong>
       </div>
+
     </div>
   );
 }

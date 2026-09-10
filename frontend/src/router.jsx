@@ -6,12 +6,12 @@ import AlertsPage from "./pages/AlertsPage";
 import InvestigationPage from "./pages/investigation/InvestigationPage";
 import ModelMonitoringPage from "./pages/ModelMonitoringPage";
 import LoginPage from "./pages/LoginPage";
-import ModelMonitoring from "./pages/ModelMonitoring";
 const router = [
   {
     path: "/",
     element: <Navigate to="/dashboard" replace />,
   },
+   
   {
     path: "/login",
     element: <LoginPage />,
@@ -34,7 +34,7 @@ const router = [
   },
   {
     path: "/model-monitoring",
-    element: <ModelMonitoring />,
+    element: <ModelMonitoringPage />,
   },
 ];
 

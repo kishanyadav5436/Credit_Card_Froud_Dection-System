@@ -1575,3 +1575,28 @@ a {
   opacity: 0.6;
   cursor: not-allowed;
 }
+.model-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.model-chart-card {
+  background: #fff;
+  border: 1px solid #e3e7ee;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.model-chart {
+  width: 100%;
+  height: 300px;
+  margin-top: 10px;
+}
+
+@media (max-width: 1000px) {
+  .model-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
