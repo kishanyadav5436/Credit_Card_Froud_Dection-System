@@ -6,6 +6,7 @@ import AlertsPage from "./pages/AlertsPage";
 import InvestigationPage from "./pages/investigation/InvestigationPage";
 import ModelMonitoringPage from "./pages/ModelMonitoringPage";
 import LoginPage from "./pages/LoginPage";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
 
 const router = [
   {
@@ -19,28 +20,34 @@ const router = [
   },
 
   {
-    path: "/dashboard",
-    element: <DashboardPage />,
+    element: <ProtectedRoute />,
+    children: [
+      {
+        path: "/dashboard",
+        element: <DashboardPage />,
+      },
+      {
+        path: "/transactions",
+        element: <TransactionsPage />,
+      },
+      {
+        path: "/alerts",
+        element: <AlertsPage />,
+      },
+      {
+        path: "/investigations",
+        element: <InvestigationPage />,
+      },
+      {
+        path: "/model-monitoring",
+        element: <ModelMonitoringPage />,
+      },
+    ],
   },
 
   {
-    path: "/transactions",
-    element: <TransactionsPage />,
-  },
-
-  {
-    path: "/alerts",
-    element: <AlertsPage />,
-  },
-
-  {
-    path: "/investigations",
-    element: <InvestigationPage />,
-  },
-
-  {
-    path: "/model-monitoring",
-    element: <ModelMonitoringPage />,
+    path: "*",
+    element: <Navigate to="/dashboard" replace />,
   },
 ];
 

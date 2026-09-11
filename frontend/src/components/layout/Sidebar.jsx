@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 
+import { logout } from "../../api/auth";
+
 const navigation = [
   {
     label: "Dashboard",
@@ -38,6 +40,11 @@ const navigation = [
 
 function Sidebar() {
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <aside className="sidebar">
@@ -86,7 +93,7 @@ function Sidebar() {
         <button
           type="button"
           className="sidebar-logout"
-          onClick={() => navigate("/login")}
+          onClick={handleLogout}
         >
           <LogOut size={17} />
           <span>Logout</span>

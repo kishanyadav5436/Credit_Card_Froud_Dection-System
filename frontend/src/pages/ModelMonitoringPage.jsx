@@ -1,23 +1,19 @@
 import {
   Activity,
+  AlertTriangle,
   BrainCircuit,
   CheckCircle2,
-  AlertTriangle,
   Database,
   TrendingUp,
 } from "lucide-react";
 
-import Sidebar from "../components/layout/Sidebar";
-import TopBar from "../components/layout/TopBar";
-
+import useModelMetrics from "../hooks/useModelMetrics";
+import useFeatureDrift from "../hooks/useFeatureDrift";
 
 import ModelPerformanceChart from "../components/charts/ModelPerformanceChart";
 import FeatureDriftChart from "../components/charts/FeatureDriftChart";
 
-import useModelMetrics from "../hooks/useModelMetrics";
-import useFeatureDrift from "../hooks/useFeatureDrift";
-
-function ModelMonitoring() {
+function ModelMonitoringPage() {
   const {
     data: metrics,
     isLoading: metricsLoading,
@@ -32,419 +28,302 @@ function ModelMonitoring() {
 
   if (metricsLoading || driftLoading) {
     return (
-      <div className="app-shell">
-        <Sidebar />
-
-        <div className="main-area">
-          <TopBar />
-
-          <div className="loading-state">
-            Loading model monitoring...
-          </div>
+      <main className="page-content">
+        <div className="loading-state">
+          <Activity size={22} />
+          <span>Loading model monitoring...</span>
         </div>
-      </div>
+      </main>
     );
   }
 
-  if (
-    metricsError ||
-    driftError ||
-    !metrics ||
-    !featureDrift
-  ) {
+  if (metricsError || driftError || !metrics || !featureDrift) {
     return (
-      <div className="app-shell">
-        <Sidebar />
-
-        <div className="main-area">
-          <TopBar />
-
-          <main className="dashboard-content">
-            <div className="empty-state">
-              <AlertTriangle size={32} />
-
-              <h3>
-                Model monitoring unavailable
-              </h3>
-
-              <p>
-                Unable to load model monitoring data.
-                Please try again.
-              </p>
-            </div>
-          </main>
+      <main className="page-content">
+        <div className="error-state">
+          <AlertTriangle size={22} />
+          <div>
+            <h2>Unable to load model monitoring</h2>
+            <p>Please try again.</p>
+          </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="app-shell">
-      <Sidebar />
-
-      <div className="main-area">
-        <TopBar />
-
-        <main className="dashboard-content">
-
-          {/* PAGE HEADER */}
-
-          <div className="page-header">
-            <div>
-              <h1>Model Monitoring</h1>
-
-              <p>
-                Monitor fraud model performance,
-                drift, and health.
-              </p>
-            </div>
+    <main className="page-content">
+      {/* Header */}
+      <div className="page-header">
+        <div>
+          <div className="page-title-row">
+            <BrainCircuit size={24} />
+            <h1>Model Monitoring</h1>
           </div>
 
-          {/* MODEL HEADER */}
+          <p>
+            Monitor fraud detection model performance, predictions,
+            and data drift.
+          </p>
+        </div>
 
-          <section className="model-monitor-header">
-            <div className="model-monitor-title">
-              <div className="model-monitor-icon">
-                <BrainCircuit size={22} />
-              </div>
-
-              <div>
-                <h2>{metrics.modelName}</h2>
-
-                <p>
-                  Version {metrics.version}
-                </p>
-              </div>
-            </div>
-
-            <div className="model-status">
-              <CheckCircle2 size={16} />
-
-              {metrics.status}
-            </div>
-          </section>
-
-          {/* MODEL PERFORMANCE */}
-
-          <section className="monitor-section">
-            <div className="section-heading">
-              <div>
-                <h2>Model Performance</h2>
-
-                <p>
-                  Current production model metrics
-                </p>
-              </div>
-            </div>
-
-            <div className="metric-grid">
-              <MetricCard
-                icon={TrendingUp}
-                label="Precision"
-                value={`${metrics.performance.precision}%`}
-              />
-
-              <MetricCard
-                icon={Activity}
-                label="Recall"
-                value={`${metrics.performance.recall}%`}
-              />
-
-              <MetricCard
-                icon={BrainCircuit}
-                label="F1 Score"
-                value={`${metrics.performance.f1Score}%`}
-              />
-
-              <MetricCard
-                icon={TrendingUp}
-                label="ROC-AUC"
-                value={`${metrics.performance.rocAuc}%`}
-              />
-
-              <MetricCard
-                icon={AlertTriangle}
-                label="False Positive Rate"
-                value={`${metrics.performance.falsePositiveRate}%`}
-              />
-            </div>
-          </section>
-
-          {/* CHARTS */}
-
-          <section className="monitor-section">
-            <div className="model-charts-grid">
-
-              <ModelPerformanceChart
-                performance={metrics.performance}
-              />
-
-              <FeatureDriftChart
-                data={featureDrift}
-              />
-
-            </div>
-          </section>
-
-          {/* PREDICTION OVERVIEW */}
-
-          <section className="monitor-section">
-            <div className="section-heading">
-              <div>
-                <h2>Prediction Overview</h2>
-
-                <p>
-                  Recent model prediction activity
-                </p>
-              </div>
-            </div>
-
-            <div className="prediction-grid">
-              <PredictionCard
-                icon={Database}
-                label="Total Transactions"
-                value={metrics.predictions.total}
-              />
-
-              <PredictionCard
-                icon={AlertTriangle}
-                label="Fraud Detected"
-                value={metrics.predictions.fraudDetected}
-              />
-
-              <PredictionCard
-                icon={CheckCircle2}
-                label="Legitimate"
-                value={metrics.predictions.legitimate}
-              />
-            </div>
-          </section>
-
-          {/* MODEL DRIFT */}
-
-          <section className="monitor-section">
-            <div className="section-heading">
-              <div>
-                <h2>Model Drift</h2>
-
-                <p>
-                  Monitor changes affecting model
-                  reliability.
-                </p>
-              </div>
-
-              <div className="drift-status">
-                <CheckCircle2 size={15} />
-
-                {metrics.drift.status}
-              </div>
-            </div>
-
-            <div className="drift-overview">
-
-              <div className="drift-card">
-                <span>Feature Drift</span>
-
-                <strong>
-                  {metrics.drift.featureDrift}%
-                </strong>
-
-                <small>
-                  Threshold:{" "}
-                  {metrics.drift.threshold}%
-                </small>
-              </div>
-
-              <div className="drift-card">
-                <span>Model Drift</span>
-
-                <strong>
-                  {metrics.drift.modelDrift}%
-                </strong>
-
-                <small>
-                  Threshold:{" "}
-                  {metrics.drift.threshold}%
-                </small>
-              </div>
-
-            </div>
-          </section>
-
-          {/* FEATURE DRIFT TABLE */}
-
-          <section className="monitor-section">
-            <div className="section-heading">
-              <div>
-                <h2>Feature Drift</h2>
-
-                <p>
-                  Feature-level distribution changes.
-                </p>
-              </div>
-            </div>
-
-            <div className="monitor-table-wrapper">
-              <table className="monitor-table">
-                <thead>
-                  <tr>
-                    <th>Feature</th>
-                    <th>Drift</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {featureDrift.map((item) => (
-                    <tr key={item.feature}>
-
-                      <td>
-                        <strong>
-                          {item.feature}
-                        </strong>
-                      </td>
-
-                      <td>
-                        {item.drift}%
-                      </td>
-
-                      <td>
-                        <span
-                          className={
-                            item.status === "Warning"
-                              ? "monitor-warning"
-                              : "monitor-healthy"
-                          }
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          {/* MODEL VERSIONS */}
-
-          <section className="monitor-section">
-            <div className="section-heading">
-              <div>
-                <h2>Model Versions</h2>
-
-                <p>
-                  Deployment history of fraud models.
-                </p>
-              </div>
-            </div>
-
-            <div className="monitor-table-wrapper">
-              <table className="monitor-table">
-                <thead>
-                  <tr>
-                    <th>Version</th>
-                    <th>Deployed</th>
-                    <th>Accuracy</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {metrics.versions.map((model) => (
-                    <tr key={model.version}>
-
-                      <td>
-                        <strong>
-                          {model.version}
-                        </strong>
-                      </td>
-
-                      <td>
-                        {model.deployedAt}
-                      </td>
-
-                      <td>
-                        {model.accuracy}%
-                      </td>
-
-                      <td>
-                        <span
-                          className={
-                            model.status ===
-                            "Production"
-                              ? "monitor-healthy"
-                              : "monitor-neutral"
-                          }
-                        >
-                          {model.status}
-                        </span>
-                      </td>
-
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-        </main>
+        <div className="model-status">
+          <CheckCircle2 size={17} />
+          <span>{metrics.status}</span>
+        </div>
       </div>
-    </div>
+
+      {/* Model Information */}
+      <section className="model-info-card">
+        <div>
+          <span>Model</span>
+          <strong>{metrics.modelName}</strong>
+        </div>
+
+        <div>
+          <span>Version</span>
+          <strong>{metrics.version}</strong>
+        </div>
+
+        <div>
+          <span>Last Updated</span>
+          <strong>{metrics.lastUpdated}</strong>
+        </div>
+
+        <div>
+          <span>Status</span>
+          <strong>{metrics.status}</strong>
+        </div>
+      </section>
+
+      {/* Performance Metrics */}
+      <section className="metrics-grid">
+        <MetricCard
+          title="Precision"
+          value={`${metrics.performance.precision}%`}
+          icon={<TrendingUp size={19} />}
+        />
+
+        <MetricCard
+          title="Recall"
+          value={`${metrics.performance.recall}%`}
+          icon={<Activity size={19} />}
+        />
+
+        <MetricCard
+          title="F1 Score"
+          value={`${metrics.performance.f1Score}%`}
+          icon={<BrainCircuit size={19} />}
+        />
+
+        <MetricCard
+          title="ROC-AUC"
+          value={`${metrics.performance.rocAuc}%`}
+          icon={<TrendingUp size={19} />}
+        />
+
+        <MetricCard
+          title="False Positive Rate"
+          value={`${metrics.performance.falsePositiveRate}%`}
+          icon={<AlertTriangle size={19} />}
+        />
+      </section>
+
+      {/* Charts */}
+      <section className="model-monitoring-charts">
+        <ModelPerformanceChart
+          performance={metrics.performance}
+        />
+
+        <FeatureDriftChart data={featureDrift} />
+      </section>
+
+      {/* Prediction Overview */}
+      <section className="model-section">
+        <div className="section-heading">
+          <div>
+            <h2>Prediction Overview</h2>
+            <p>Current model prediction distribution</p>
+          </div>
+        </div>
+
+        <div className="prediction-grid">
+          <PredictionCard
+            title="Total Predictions"
+            value={metrics.predictions.total}
+            icon={<Database size={20} />}
+          />
+
+          <PredictionCard
+            title="Fraud Detected"
+            value={metrics.predictions.fraudDetected}
+            icon={<AlertTriangle size={20} />}
+          />
+
+          <PredictionCard
+            title="Legitimate"
+            value={metrics.predictions.legitimate}
+            icon={<CheckCircle2 size={20} />}
+          />
+        </div>
+      </section>
+
+      {/* Model Drift */}
+      <section className="model-section">
+        <div className="section-heading">
+          <div>
+            <h2>Model Drift</h2>
+            <p>Current drift status against configured threshold</p>
+          </div>
+        </div>
+
+        <div className="drift-overview">
+          <DriftItem
+            label="Feature Drift"
+            value={metrics.drift.featureDrift}
+          />
+
+          <DriftItem
+            label="Model Drift"
+            value={metrics.drift.modelDrift}
+          />
+
+          <DriftItem
+            label="Threshold"
+            value={metrics.drift.threshold}
+          />
+
+          <div className="drift-status">
+            <span>Status</span>
+            <strong>{metrics.drift.status}</strong>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature Drift Table */}
+      <section className="model-section">
+        <div className="section-heading">
+          <div>
+            <h2>Feature Drift</h2>
+            <p>Feature-level distribution changes</p>
+          </div>
+        </div>
+
+        <div className="table-wrapper">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Drift</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {featureDrift.map((item) => (
+                <tr key={item.feature}>
+                  <td>{item.feature}</td>
+                  <td>{item.drift}%</td>
+                  <td>
+                    <span
+                      className={
+                        item.status === "Warning"
+                          ? "status-pill warning"
+                          : "status-pill success"
+                      }
+                    >
+                      {item.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Model Versions */}
+      <section className="model-section">
+        <div className="section-heading">
+          <div>
+            <h2>Model Versions</h2>
+            <p>Deployment history of fraud detection models</p>
+          </div>
+        </div>
+
+        <div className="table-wrapper">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Version</th>
+                <th>Deployed At</th>
+                <th>Accuracy</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {metrics.versions.map((model) => (
+                <tr key={model.version}>
+                  <td>
+                    <strong>{model.version}</strong>
+                  </td>
+                  <td>{model.deployedAt}</td>
+                  <td>{model.accuracy}%</td>
+                  <td>
+                    <span
+                      className={
+                        model.status === "Production"
+                          ? "status-pill success"
+                          : "status-pill"
+                      }
+                    >
+                      {model.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
   );
 }
 
-/* ==========================================
-   METRIC CARD
-========================================== */
-
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-}) {
+function MetricCard({ title, value, icon }) {
   return (
-    <div className="monitor-metric-card">
-
-      <div className="monitor-card-icon">
-        <Icon size={18} />
-      </div>
-
-      <span>{label}</span>
-
-      <strong>{value}</strong>
-
-    </div>
-  );
-}
-
-/* ==========================================
-   PREDICTION CARD
-========================================== */
-
-function PredictionCard({
-  icon: Icon,
-  label,
-  value,
-}) {
-  return (
-    <div className="prediction-card">
-
-      <div className="prediction-icon">
-        <Icon size={18} />
-      </div>
+    <div className="metric-card">
+      <div className="metric-card-icon">{icon}</div>
 
       <div>
-        <span>{label}</span>
-
-        <strong>
-          {Number(value).toLocaleString("en-IN")}
-        </strong>
+        <span>{title}</span>
+        <strong>{value}</strong>
       </div>
-
     </div>
   );
 }
 
-export default ModelMonitoring;
+function PredictionCard({ title, value, icon }) {
+  return (
+    <div className="prediction-card">
+      <div className="prediction-card-icon">{icon}</div>
+
+      <div>
+        <span>{title}</span>
+        <strong>{value.toLocaleString()}</strong>
+      </div>
+    </div>
+  );
+}
+
+function DriftItem({ label, value }) {
+  return (
+    <div className="drift-item">
+      <span>{label}</span>
+      <strong>{value}%</strong>
+    </div>
+  );
+}
+
+export default ModelMonitoringPage;
