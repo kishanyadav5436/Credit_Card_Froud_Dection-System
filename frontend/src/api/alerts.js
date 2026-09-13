@@ -154,3 +154,27 @@ export async function getAlertById(id) {
 
   return alerts.find((alert) => alert.id === id);
 }
+export function subscribeToAlerts(callback) {
+  const interval = setInterval(() => {
+    const newAlert = {
+      id: `ALT-${Date.now()}`,
+      title: "Real-Time Fraud Alert",
+      severity: "Critical",
+      status: "Active",
+      riskScore: Math.floor(Math.random() * 10) + 90,
+      transactionId: "TXN-98421",
+      customer: "Rahul Sharma",
+      trigger: "Suspicious transaction detected",
+      merchant: "Amazon India",
+      reasons: [
+        "VELOCITY_HIGH",
+        "AMOUNT_ANOMALY",
+      ],
+      createdAt: new Date().toISOString(),
+    };
+
+    callback(newAlert);
+  }, 15000);
+
+  return () => clearInterval(interval);
+}

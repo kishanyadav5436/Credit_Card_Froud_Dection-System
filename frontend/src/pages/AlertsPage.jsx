@@ -26,9 +26,19 @@ import AlertTypeBadge from "../components/domain/AlertTypeBadge";
 import Drawer from "../components/ui/Drawer";
 
 import useAlerts from "../hooks/useAlerts";
+import useAlertStream from "../hooks/useAlertStream";
 
 function AlertsPage() {
-  const { data: alerts = [], isLoading } = useAlerts();
+  const {
+    data: alerts = [],
+    isLoading,
+    isError,
+  } = useAlerts();
+
+  const {
+    alerts: realtimeAlerts = [],
+    connected,
+  } = useAlertStream();
 
   const [activeTab, setActiveTab] = useState("Active");
   const [search, setSearch] = useState("");
@@ -37,22 +47,35 @@ function AlertsPage() {
 
   const navigate = useNavigate();
 
+  const allAlerts = useMemo(() => {
+    return [...realtimeAlerts, ...alerts];
+  }, [realtimeAlerts, alerts]);
+
   const filteredAlerts = useMemo(() => {
-    return alerts.filter((alert) => {
-      const searchValue = search.toLowerCase();
+    const searchValue = search.toLowerCase().trim();
+
+    return allAlerts.filter((alert) => {
+      const alertId = alert.id || "";
+      const alertType = alert.type || alert.title || "";
+      const transactionId = alert.transactionId || "";
+      const customerName =
+        alert.customerName || alert.customer || "";
+      const merchant = alert.merchant || "";
 
       const matchesSearch =
-        alert.id.toLowerCase().includes(searchValue) ||
-        alert.type.toLowerCase().includes(searchValue) ||
-        alert.transactionId.toLowerCase().includes(searchValue) ||
-        alert.customerName.toLowerCase().includes(searchValue) ||
-        alert.merchant.toLowerCase().includes(searchValue);
+        alertId.toLowerCase().includes(searchValue) ||
+        alertType.toLowerCase().includes(searchValue) ||
+        transactionId.toLowerCase().includes(searchValue) ||
+        customerName.toLowerCase().includes(searchValue) ||
+        merchant.toLowerCase().includes(searchValue);
 
       const matchesTab =
-        activeTab === "All" || alert.status === activeTab;
+        activeTab === "All" ||
+        alert.status === activeTab;
 
       const matchesSeverity =
-        severity === "All" || alert.severity === severity;
+        severity === "All" ||
+        alert.severity === severity;
 
       return (
         matchesSearch &&
@@ -60,7 +83,12 @@ function AlertsPage() {
         matchesSeverity
       );
     });
-  }, [alerts, activeTab, search, severity]);
+  }, [
+    allAlerts,
+    activeTab,
+    search,
+    severity,
+  ]);
 
   const clearFilters = () => {
     setSearch("");
@@ -68,15 +96,15 @@ function AlertsPage() {
     setActiveTab("Active");
   };
 
-  const activeCount = alerts.filter(
+  const activeCount = allAlerts.filter(
     (alert) => alert.status === "Active"
   ).length;
 
-  const criticalCount = alerts.filter(
+  const criticalCount = allAlerts.filter(
     (alert) => alert.severity === "Critical"
   ).length;
 
-  const resolvedCount = alerts.filter(
+  const resolvedCount = allAlerts.filter(
     (alert) => alert.status === "Resolved"
   ).length;
 
@@ -92,6 +120,24 @@ function AlertsPage() {
             title="Fraud Alerts"
             description="Review suspicious activity requiring analyst attention."
           />
+
+          {/* LIVE STREAM STATUS */}
+
+          <div className="alert-stream-status">
+            <span
+              className={
+                connected
+                  ? "stream-dot connected"
+                  : "stream-dot"
+              }
+            />
+
+            <span>
+              {connected
+                ? "Live monitoring"
+                : "Connecting..."}
+            </span>
+          </div>
 
           {/* SUMMARY */}
 
@@ -124,27 +170,30 @@ function AlertsPage() {
           {/* MAIN PANEL */}
 
           <section className="panel">
-            {/* TABS */}
-
             <div className="alerts-toolbar">
               <div className="alert-tabs">
-                {["Active", "Resolved", "All"].map((tab) => (
-                  <button
-                    key={tab}
-                    className={
-                      activeTab === tab
-                        ? "alert-tab active"
-                        : "alert-tab"
-                    }
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {tab}
+                {["Active", "Resolved", "All"].map(
+                  (tab) => (
+                    <button
+                      type="button"
+                      key={tab}
+                      className={
+                        activeTab === tab
+                          ? "alert-tab active"
+                          : "alert-tab"
+                      }
+                      onClick={() =>
+                        setActiveTab(tab)
+                      }
+                    >
+                      {tab}
 
-                    {tab === "Active" && (
-                      <span>{activeCount}</span>
-                    )}
-                  </button>
-                ))}
+                      {tab === "Active" && (
+                        <span>{activeCount}</span>
+                      )}
+                    </button>
+                  )
+                )}
               </div>
 
               <div className="alert-actions">
@@ -157,10 +206,12 @@ function AlertsPage() {
                       setSearch(event.target.value)
                     }
                     placeholder="Search alerts..."
+                    aria-label="Search alerts"
                   />
 
                   {search && (
                     <button
+                      type="button"
                       onClick={() => setSearch("")}
                       aria-label="Clear search"
                     >
@@ -175,15 +226,23 @@ function AlertsPage() {
                   onChange={(event) =>
                     setSeverity(event.target.value)
                   }
+                  aria-label="Filter by severity"
                 >
-                  <option value="All">All Severity</option>
-                  <option value="Critical">Critical</option>
+                  <option value="All">
+                    All Severity
+                  </option>
+                  <option value="Critical">
+                    Critical
+                  </option>
                   <option value="High">High</option>
-                  <option value="Medium">Medium</option>
+                  <option value="Medium">
+                    Medium
+                  </option>
                   <option value="Low">Low</option>
                 </select>
 
                 <button
+                  type="button"
                   className="refresh-button"
                   onClick={clearFilters}
                   title="Reset filters"
@@ -206,6 +265,16 @@ function AlertsPage() {
               <div className="loading-state">
                 Loading alerts...
               </div>
+            ) : isError ? (
+              <div className="empty-state">
+                <AlertTriangle size={30} />
+
+                <h3>Unable to load alerts</h3>
+
+                <p>
+                  Please try again later.
+                </p>
+              </div>
             ) : filteredAlerts.length > 0 ? (
               <div className="table-wrapper">
                 <table className="alerts-table">
@@ -218,81 +287,101 @@ function AlertsPage() {
                       <th>Customer</th>
                       <th>Detected</th>
                       <th>Status</th>
-                      <th></th>
+                      <th />
                     </tr>
                   </thead>
 
                   <tbody>
-                    {filteredAlerts.map((alert) => (
-                      <tr key={alert.id}>
-                        <td>
-                          <div>
-                            <AlertTypeBadge
-                              type={alert.type}
+                    {filteredAlerts.map((alert) => {
+                      const customerName =
+                        alert.customerName ||
+                        alert.customer ||
+                        "Unknown Customer";
+
+                      const alertType =
+                        alert.type ||
+                        alert.title ||
+                        "Fraud Alert";
+
+                      return (
+                        <tr key={alert.id}>
+                          <td>
+                            <div>
+                              <AlertTypeBadge
+                                type={alertType}
+                              />
+
+                              <span className="alert-id">
+                                {alert.id}
+                              </span>
+                            </div>
+                          </td>
+
+                          <td>
+                            <SeverityTag
+                              severity={alert.severity}
                             />
+                          </td>
 
-                            <span className="alert-id">
-                              {alert.id}
-                            </span>
-                          </div>
-                        </td>
+                          <td>
+                            <RiskScoreBadge
+                              score={alert.riskScore}
+                            />
+                          </td>
 
-                        <td>
-                          <SeverityTag
-                            severity={alert.severity}
-                          />
-                        </td>
-
-                        <td>
-                          <RiskScoreBadge
-                            score={alert.riskScore}
-                          />
-                        </td>
-
-                        <td>
-                          <strong>
-                            {alert.transactionId}
-                          </strong>
-                        </td>
-
-                        <td>
-                          <div className="alert-customer">
+                          <td>
                             <strong>
-                              {alert.customerName}
+                              {alert.transactionId}
                             </strong>
+                          </td>
 
-                            <span>{alert.customerId}</span>
-                          </div>
-                        </td>
+                          <td>
+                            <div className="alert-customer">
+                              <strong>
+                                {customerName}
+                              </strong>
 
-                        <td>
-                          <span className="table-time">
-                            {alert.detectedAt}
-                          </span>
-                        </td>
+                              <span>
+                                {alert.customerId ||
+                                  "—"}
+                              </span>
+                            </div>
+                          </td>
 
-                        <td>
-                          <span
-                            className={`alert-status ${alert.status.toLowerCase()}`}
-                          >
-                            <span></span>
-                            {alert.status}
-                          </span>
-                        </td>
+                          <td>
+                            <span className="table-time">
+                              {alert.detectedAt ||
+                                alert.createdAt ||
+                                "Just now"}
+                            </span>
+                          </td>
 
-                        <td>
-                          <button
-                            className="view-button"
-                            onClick={() =>
-                              setSelectedAlert(alert)
-                            }
-                            aria-label={`View ${alert.id}`}
-                          >
-                            <Eye size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                          <td>
+                            <span
+                              className={`alert-status ${(
+                                alert.status || ""
+                              ).toLowerCase()}`}
+                            >
+                              <span />
+                              {alert.status}
+                            </span>
+                          </td>
+
+                          <td>
+                            <button
+                              type="button"
+                              className="view-button"
+                              onClick={() =>
+                                setSelectedAlert(alert)
+                              }
+                              aria-label={`View ${alert.id}`}
+                            >
+                              <Eye size={16} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -329,10 +418,6 @@ function AlertsPage() {
   );
 }
 
-/* ==========================================
-   SUMMARY CARD
-========================================== */
-
 function SummaryCard({
   icon: Icon,
   value,
@@ -352,11 +437,15 @@ function SummaryCard({
   );
 }
 
-/* ==========================================
-   ALERT DETAILS
-========================================== */
-
 function AlertDetails({ alert, navigate }) {
+  const alertType =
+    alert.type || alert.title || "Fraud Alert";
+
+  const customerName =
+    alert.customerName ||
+    alert.customer ||
+    "Unknown Customer";
+
   const handleInvestigation = () => {
     navigate(
       `/investigations?transactionId=${encodeURIComponent(
@@ -367,21 +456,19 @@ function AlertDetails({ alert, navigate }) {
 
   return (
     <div className="alert-details">
-      {/* HEADER */}
-
       <div className="alert-detail-header">
-        <AlertTypeBadge type={alert.type} />
+        <AlertTypeBadge type={alertType} />
 
         <SeverityTag severity={alert.severity} />
 
         <div className="alert-detail-risk">
           <span>Risk Score</span>
 
-          <RiskScoreBadge score={alert.riskScore} />
+          <RiskScoreBadge
+            score={alert.riskScore}
+          />
         </div>
       </div>
-
-      {/* INFORMATION */}
 
       <div className="drawer-section">
         <SectionTitle
@@ -392,15 +479,18 @@ function AlertDetails({ alert, navigate }) {
         <DetailRows
           rows={[
             ["Alert ID", alert.id],
-            ["Alert Type", alert.type],
+            ["Alert Type", alertType],
             ["Severity", alert.severity],
             ["Status", alert.status],
-            ["Detected", alert.detectedAt],
+            [
+              "Detected",
+              alert.detectedAt ||
+                alert.createdAt ||
+                "Just now",
+            ],
           ]}
         />
       </div>
-
-      {/* TRIGGER */}
 
       <div className="drawer-section">
         <SectionTitle
@@ -409,11 +499,10 @@ function AlertDetails({ alert, navigate }) {
         />
 
         <div className="trigger-box">
-          {alert.trigger}
+          {alert.trigger ||
+            "Suspicious activity detected."}
         </div>
       </div>
-
-      {/* TRANSACTION */}
 
       <div className="drawer-section">
         <SectionTitle
@@ -425,14 +514,12 @@ function AlertDetails({ alert, navigate }) {
           rows={[
             [
               "Transaction ID",
-              alert.transactionId,
+              alert.transactionId || "—",
             ],
-            ["Merchant", alert.merchant],
+            ["Merchant", alert.merchant || "—"],
           ]}
         />
       </div>
-
-      {/* CUSTOMER */}
 
       <div className="drawer-section">
         <SectionTitle
@@ -442,18 +529,18 @@ function AlertDetails({ alert, navigate }) {
 
         <div className="customer-card">
           <div className="customer-avatar">
-            {alert.customerName.charAt(0)}
+            {customerName.charAt(0)}
           </div>
 
           <div>
-            <strong>{alert.customerName}</strong>
+            <strong>{customerName}</strong>
 
-            <span>{alert.customerId}</span>
+            <span>
+              {alert.customerId || "—"}
+            </span>
           </div>
         </div>
       </div>
-
-      {/* REASONS */}
 
       <div className="drawer-section">
         <SectionTitle
@@ -462,21 +549,22 @@ function AlertDetails({ alert, navigate }) {
         />
 
         <div className="alert-reason-list">
-          {alert.reasons.map((reason, index) => (
-            <div
-              className="alert-reason"
-              key={`${reason}-${index}`}
-            >
-              <span>{index + 1}</span>
-              <p>{reason}</p>
-            </div>
-          ))}
+          {(alert.reasons || []).map(
+            (reason, index) => (
+              <div
+                className="alert-reason"
+                key={`${reason}-${index}`}
+              >
+                <span>{index + 1}</span>
+                <p>{reason}</p>
+              </div>
+            )
+          )}
         </div>
       </div>
 
-      {/* ACTION */}
-
       <button
+        type="button"
         className="investigate-button"
         onClick={handleInvestigation}
       >
@@ -486,10 +574,6 @@ function AlertDetails({ alert, navigate }) {
     </div>
   );
 }
-
-/* ==========================================
-   SECTION TITLE
-========================================== */
 
 function SectionTitle({
   icon: Icon,
@@ -502,10 +586,6 @@ function SectionTitle({
     </div>
   );
 }
-
-/* ==========================================
-   DETAIL ROWS
-========================================== */
 
 function DetailRows({ rows }) {
   return (
