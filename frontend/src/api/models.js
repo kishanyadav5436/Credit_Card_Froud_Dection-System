@@ -1,3 +1,4 @@
+import apiClient from "./client";
 const modelMetrics = {
   modelName: "Fraud Detection Model",
   version: "fraud-v3.2",
@@ -89,4 +90,9 @@ export async function getFeatureDrift() {
   );
 
   return featureDrift;
+}
+export async function getModelStatusFromBackend() {
+  return apiClient.get(
+    "/api/v1/models/status"
+  );
 }

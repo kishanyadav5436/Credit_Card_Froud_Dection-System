@@ -1,3 +1,4 @@
+import apiClient from "./client";
 const investigations = {
   "TXN-98421": {
     transactionId: "TXN-98421",
@@ -293,4 +294,18 @@ export function createInvestigationFromTransaction(
         reason.label || reason.description || "Unknown reason",
     })),
   };
+}
+export async function getInvestigationsFromBackend() {
+  return apiClient.get(
+    "/api/v1/investigations"
+  );
+}
+
+export async function createInvestigation(
+  data
+) {
+  return apiClient.post(
+    "/api/v1/investigations",
+    data
+  );
 }

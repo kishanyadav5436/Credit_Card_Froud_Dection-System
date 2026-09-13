@@ -1,3 +1,5 @@
+
+import apiClient from "./client";
 const alerts = [
   {
     id: "ALT-70021",
@@ -220,5 +222,10 @@ export function createAlertFromTransaction(transaction) {
 export function getStoredAlerts() {
   return JSON.parse(
     localStorage.getItem("fraudguard-alerts") || "[]"
+  );
+}
+export async function getAlertsFromBackend() {
+  return apiClient.get(
+    "/api/v1/fraud/alerts"
   );
 }

@@ -361,3 +361,12 @@ export function getStoredTransactionById(id) {
     (transaction) => transaction.id === id
   ) || null;
 }
+import apiClient from "./client";
+
+export async function getTransactionFromBackend(
+  transactionId
+) {
+  return apiClient.get(
+    `/api/v1/transactions/${transactionId}`
+  );
+}
