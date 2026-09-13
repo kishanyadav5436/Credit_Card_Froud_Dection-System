@@ -162,8 +162,15 @@ export async function getInvestigation(transactionId) {
     );
   }
 
-  // Keep your existing mock investigation logic below.
+  if (!transactionId) {
+    return null;
+  }
+
+  const mockInvestigation = investigations[transactionId];
+
+  return mockInvestigation || null;
 }
+
 export async function saveInvestigationDecision(
   transactionId,
   decision,
@@ -208,17 +215,27 @@ export function getSavedDecision(transactionId) {
     return null;
   }
 }
+
 export function createInvestigationFromTransaction(
   transaction
 ) {
+  const riskScore =
+    transaction.riskScore ?? transaction.score ?? 0;
+  const riskLevel =
+    transaction.risk ?? transaction.severity ?? "Medium";
+  const decision =
+    transaction.decision ?? "APPROVE";
+
   return {
     alertId: null,
 
     customer: {
-      name: transaction.customerName,
+      name: transaction.customerName || "Unknown customer",
       id: "CUS-SIMULATED",
       accountAge: "N/A",
-      avgTransaction: transaction.amount,
+      email: "simulated@example.com",
+      phone: "N/A",
+      averageTransaction: transaction.amount || 0,
       totalTransactions: 1,
       previousFraudCases: 0,
     },
@@ -234,11 +251,12 @@ export function createInvestigationFromTransaction(
     },
 
     risk: {
-      score: transaction.riskScore,
-      severity: transaction.risk,
-      decision: transaction.decision,
-      model: "fraud-engine-v1",
-      probability: transaction.riskScore / 100,
+      score: riskScore,
+      level: riskLevel,
+      severity: riskLevel,
+      decision,
+      modelVersion: "fraud-engine-v1",
+      probability: riskScore / 100,
     },
 
     device: {
@@ -261,20 +279,18 @@ export function createInvestigationFromTransaction(
       category: "Simulated",
       riskScore: 0,
       totalTransactions: 0,
-      fraudRate: 0,
+      fraudRate: "0.00%",
     },
 
     customerTransactions: [],
 
-    reasons: transaction.reasons.map(
-      (reason) => ({
-        code: reason.code,
-        severity:
-          reason.score >= 25
-            ? "High"
-            : "Medium",
-        description: reason.label,
-      })
-    ),
+    reasons: (transaction.reasons || []).map((reason) => ({
+      code: reason.code,
+      impact:
+        reason.impact ||
+        (reason.score >= 25 ? "High" : "Medium"),
+      description:
+        reason.label || reason.description || "Unknown reason",
+    })),
   };
 }

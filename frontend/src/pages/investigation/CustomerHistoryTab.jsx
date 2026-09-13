@@ -73,9 +73,11 @@ function CustomerHistoryTab({
 
           <InfoItem
             label="Average transaction"
-            value={`₹${customer.averageTransaction.toLocaleString(
-              "en-IN"
-            )}`}
+            value={`₹${(
+              customer.averageTransaction ??
+              customer.avgTransaction ??
+              0
+            ).toLocaleString("en-IN")}`}
           />
         </div>
       </div>

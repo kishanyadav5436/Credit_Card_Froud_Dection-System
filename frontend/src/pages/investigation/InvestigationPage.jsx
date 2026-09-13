@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import {
@@ -42,22 +42,16 @@ function InvestigationPage() {
     useState("customer");
 
   // Analyst decision
-  const [decision, setDecision] =
-    useState("BLOCK");
+  const [decision, setDecision] = useState(() => {
+    const savedDecision =
+      getSavedDecision(transactionId);
+
+    return savedDecision?.decision || "BLOCK";
+  });
 
   // Saving state
   const [savingDecision, setSavingDecision] =
     useState(false);
-
-  // Load previously saved analyst decision
-  useEffect(() => {
-    const savedDecision =
-      getSavedDecision(transactionId);
-
-    if (savedDecision?.decision) {
-      setDecision(savedDecision.decision);
-    }
-  }, [transactionId]);
 
   /* ==========================================
      LOADING
@@ -201,7 +195,11 @@ function InvestigationPage() {
 
             <div className="investigation-header-actions">
               <SeverityTag
-                severity={data.risk.level}
+                severity={
+                  data.risk.level ||
+                  data.risk.severity ||
+                  "Medium"
+                }
               />
 
               <StatusPill status="Review" />

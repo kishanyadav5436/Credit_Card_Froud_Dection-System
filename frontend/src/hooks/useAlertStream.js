@@ -3,11 +3,9 @@ import { subscribeToAlerts } from "../api/alerts";
 
 function useAlertStream() {
   const [alerts, setAlerts] = useState([]);
-  const [connected, setConnected] = useState(false);
+  const [connected, setConnected] = useState(true);
 
   useEffect(() => {
-    setConnected(true);
-
     const handleNewAlert = (event) => {
       setAlerts((currentAlerts) => [
         event.detail,
