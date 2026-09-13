@@ -1,5 +1,6 @@
 import { calculateRisk } from "./fraudEngine";
 import { createAlertFromTransaction } from "./alerts";
+import { saveSimulatedTransaction } from "./transactions";
 
 const merchants = [
   "Amazon India",
@@ -45,13 +46,14 @@ export function simulateTransaction() {
   const risk = calculateRisk(transaction);
 
   const result = {
-    ...transaction,
-    ...risk,
-  };
+  ...transaction,
+  ...risk,
+};
 
-  if (risk.score >= 60) {
-    createAlertFromTransaction(result);
-  }
+saveSimulatedTransaction(result);
 
-  return result;
+if (risk.score >= 60) {
+  createAlertFromTransaction(result);
 }
+
+return result;}

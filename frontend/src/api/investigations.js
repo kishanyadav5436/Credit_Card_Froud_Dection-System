@@ -141,13 +141,28 @@ const investigations = {
 
 export async function getInvestigation(transactionId) {
   await new Promise((resolve) =>
-    setTimeout(resolve, 400)
+    setTimeout(resolve, 300)
   );
 
-  return (
-    investigations[transactionId] ||
-    investigations["TXN-98421"]
+  const simulatedTransactions = JSON.parse(
+    localStorage.getItem(
+      "fraudguard-transactions"
+    ) || "[]"
   );
+
+  const simulatedTransaction =
+    simulatedTransactions.find(
+      (transaction) =>
+        transaction.id === transactionId
+    );
+
+  if (simulatedTransaction) {
+    return createInvestigationFromTransaction(
+      simulatedTransaction
+    );
+  }
+
+  // Keep your existing mock investigation logic below.
 }
 export async function saveInvestigationDecision(
   transactionId,
@@ -192,4 +207,74 @@ export function getSavedDecision(transactionId) {
 
     return null;
   }
+}
+export function createInvestigationFromTransaction(
+  transaction
+) {
+  return {
+    alertId: null,
+
+    customer: {
+      name: transaction.customerName,
+      id: "CUS-SIMULATED",
+      accountAge: "N/A",
+      avgTransaction: transaction.amount,
+      totalTransactions: 1,
+      previousFraudCases: 0,
+    },
+
+    transaction: {
+      id: transaction.id,
+      amount: transaction.amount,
+      merchant: transaction.merchant,
+      category: "Simulated",
+      location: "Unknown",
+      timestamp: transaction.timestamp,
+      paymentMethod: "Credit Card",
+    },
+
+    risk: {
+      score: transaction.riskScore,
+      severity: transaction.risk,
+      decision: transaction.decision,
+      model: "fraud-engine-v1",
+      probability: transaction.riskScore / 100,
+    },
+
+    device: {
+      current: {
+        name: transaction.isNewDevice
+          ? "New Device"
+          : "Known Device",
+        os: "Unknown",
+        browser: "Unknown",
+        fingerprint: "SIMULATED",
+        firstSeen: transaction.timestamp,
+        trusted: !transaction.isNewDevice,
+      },
+      history: [],
+    },
+
+    merchant: {
+      name: transaction.merchant,
+      id: "MER-SIMULATED",
+      category: "Simulated",
+      riskScore: 0,
+      totalTransactions: 0,
+      fraudRate: 0,
+    },
+
+    customerTransactions: [],
+
+    reasons: transaction.reasons.map(
+      (reason) => ({
+        code: reason.code,
+        severity:
+          reason.score >= 25
+            ? "High"
+            : "Medium",
+        description: reason.label,
+      })
+    ),
+  };
 }

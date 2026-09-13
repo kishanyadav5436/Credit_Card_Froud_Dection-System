@@ -306,3 +306,58 @@ export async function getTransactionById(id) {
 
   return transactions.find((transaction) => transaction.id === id);
 }
+export function saveSimulatedTransaction(transaction) {
+  const existingTransactions = JSON.parse(
+    localStorage.getItem("fraudguard-transactions") || "[]"
+  );
+
+  const savedTransaction = {
+    id: transaction.id,
+    customerName: transaction.customerName,
+    merchant: transaction.merchant,
+    amount: transaction.amount,
+    riskScore: transaction.score,
+    risk: transaction.severity,
+    status:
+      transaction.decision === "BLOCK"
+        ? "Blocked"
+        : transaction.decision === "REVIEW"
+        ? "Review"
+        : "Approved",
+    decision: transaction.decision,
+    model: "fraud-engine-v1",
+    timestamp: transaction.timestamp,
+    reasons: transaction.reasons.map(
+      (reason) => reason.code
+    ),
+  };
+
+  localStorage.setItem(
+    "fraudguard-transactions",
+    JSON.stringify([
+      savedTransaction,
+      ...existingTransactions,
+    ])
+  );
+
+  window.dispatchEvent(
+    new CustomEvent("fraudguard-transaction-created", {
+      detail: savedTransaction,
+    })
+  );
+
+  return savedTransaction;
+}
+
+export function getStoredTransactions() {
+  return JSON.parse(
+    localStorage.getItem("fraudguard-transactions") || "[]"
+  );
+}
+export function getStoredTransactionById(id) {
+  const transactions = getStoredTransactions();
+
+  return transactions.find(
+    (transaction) => transaction.id === id
+  ) || null;
+}
