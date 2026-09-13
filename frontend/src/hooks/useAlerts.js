@@ -1,30 +1,22 @@
-import { useEffect, useState } from "react";
-import { subscribeToAlerts } from "../api/alerts";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getAlerts,
+  getStoredAlerts,
+} from "../api/alerts";
 
-function useAlertStream() {
-  const [alerts, setAlerts] = useState([]);
-  const [connected, setConnected] = useState(false);
+function useAlerts() {
+  return useQuery({
+    queryKey: ["alerts"],
+    queryFn: async () => {
+      const alerts = await getAlerts();
+      const storedAlerts = getStoredAlerts();
 
-  useEffect(() => {
-    setConnected(true);
-
-    const unsubscribe = subscribeToAlerts((newAlert) => {
-      setAlerts((currentAlerts) => [
-        newAlert,
-        ...currentAlerts,
-      ]);
-    });
-
-    return () => {
-      unsubscribe();
-      setConnected(false);
-    };
-  }, []);
-
-  return {
-    alerts,
-    connected,
-  };
+      return [
+        ...storedAlerts,
+        ...alerts,
+      ];
+    },
+  });
 }
 
-export default useAlertStream;
+export default useAlerts;

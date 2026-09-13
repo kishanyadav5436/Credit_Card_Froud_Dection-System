@@ -7,6 +7,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { Zap } from "lucide-react";
 
 import { logout } from "../../api/auth";
 
@@ -16,6 +17,11 @@ const navigation = [
     path: "/dashboard",
     icon: LayoutDashboard,
   },
+  {
+  label: "Fraud Simulator",
+  path: "/fraud-simulator",
+  icon: Zap,
+},
   {
     label: "Transactions",
     path: "/transactions",

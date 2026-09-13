@@ -178,3 +178,47 @@ export function subscribeToAlerts(callback) {
 
   return () => clearInterval(interval);
 }
+export function createAlertFromTransaction(transaction) {
+  const alert = {
+    id: `ALT-${Date.now()}`,
+    type: "Fraud Risk Detected",
+    severity: transaction.severity,
+    status: "Active",
+    riskScore: transaction.score,
+    transactionId: transaction.id,
+    customerName: transaction.customerName,
+    customerId: "CUS-SIMULATED",
+    merchant: transaction.merchant,
+    trigger: `Fraud engine detected a ${transaction.severity.toLowerCase()} risk transaction.`,
+    reasons: transaction.reasons.map(
+      (reason) => reason.code
+    ),
+    detectedAt: new Date().toLocaleString(),
+  };
+
+  const existingAlerts = JSON.parse(
+    localStorage.getItem("fraudguard-alerts") || "[]"
+  );
+
+  localStorage.setItem(
+    "fraudguard-alerts",
+    JSON.stringify([
+      alert,
+      ...existingAlerts,
+    ])
+  );
+
+  window.dispatchEvent(
+    new CustomEvent("fraudguard-alert-created", {
+      detail: alert,
+    })
+  );
+
+  return alert;
+}
+
+export function getStoredAlerts() {
+  return JSON.parse(
+    localStorage.getItem("fraudguard-alerts") || "[]"
+  );
+}

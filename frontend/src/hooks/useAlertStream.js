@@ -8,15 +8,34 @@ function useAlertStream() {
   useEffect(() => {
     setConnected(true);
 
-    const unsubscribe = subscribeToAlerts((newAlert) => {
+    const handleNewAlert = (event) => {
       setAlerts((currentAlerts) => [
-        newAlert,
+        event.detail,
         ...currentAlerts,
       ]);
-    });
+    };
+
+    window.addEventListener(
+      "fraudguard-alert-created",
+      handleNewAlert
+    );
+
+    const unsubscribe =
+      subscribeToAlerts((newAlert) => {
+        setAlerts((currentAlerts) => [
+          newAlert,
+          ...currentAlerts,
+        ]);
+      });
 
     return () => {
       unsubscribe();
+
+      window.removeEventListener(
+        "fraudguard-alert-created",
+        handleNewAlert
+      );
+
       setConnected(false);
     };
   }, []);

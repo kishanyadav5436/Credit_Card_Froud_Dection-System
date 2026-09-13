@@ -7,6 +7,7 @@ import InvestigationPage from "./pages/investigation/InvestigationPage";
 import ModelMonitoringPage from "./pages/ModelMonitoringPage";
 import LoginPage from "./pages/LoginPage";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
+import FraudSimulatorPage from "./pages/FraudSimulatorPage";
 
 const router = [
   {
@@ -42,6 +43,10 @@ const router = [
         path: "/model-monitoring",
         element: <ModelMonitoringPage />,
       },
+      {
+  path: "/fraud-simulator",
+  element: <FraudSimulatorPage />,
+},
     ],
   },
 
