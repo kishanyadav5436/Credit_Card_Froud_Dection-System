@@ -1,3 +1,4 @@
+import "./FraudSimulatorPage.css";
 import { useState } from "react";
 import {
   AlertTriangle,

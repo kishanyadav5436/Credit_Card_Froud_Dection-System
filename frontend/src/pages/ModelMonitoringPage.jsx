@@ -1,3 +1,4 @@
+import "./ModelMonitoringPage.css";
 import {
   Activity,
   AlertTriangle,

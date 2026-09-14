@@ -1,0 +1,253 @@
+/* =========================
+   FRAUD SIMULATOR PAGE
+========================= */
+
+/* Layout */
+.simulator-layout {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: 20px;
+}
+
+.simulator-panel,
+.simulator-result-panel {
+  min-height: 320px;
+}
+
+/* Simulator icon badge */
+.simulator-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+/* Info items grid */
+.simulator-info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 22px 0 18px;
+}
+
+.simulator-info-item {
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.simulator-info-item span {
+  display: block;
+  color: #6b7280;
+  font-size: 10px;
+  margin-bottom: 5px;
+}
+
+.simulator-info-item strong {
+  font-size: 13px;
+}
+
+/* Simulate button */
+.simulate-button {
+  width: 100%;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.simulate-button:hover {
+  background: #1d4ed8;
+}
+
+/* Empty state */
+.simulator-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.simulator-empty h3 {
+  margin-top: 14px;
+  font-size: 20px;
+  color: #111827;
+}
+
+.simulator-empty p {
+  margin-top: 8px;
+  max-width: 320px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* Result panel */
+.simulator-result {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.transaction-result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.result-item {
+  padding: 12px 13px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.result-item span {
+  display: block;
+  color: #6b7280;
+  font-size: 10px;
+}
+
+.result-item strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+/* Risk decision rows */
+.risk-decision,
+.risk-severity {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid #f0f2f5;
+}
+
+.risk-decision span,
+.risk-severity span {
+  color: #6b7280;
+  font-size: 11px;
+}
+
+/* Decision result badge */
+.decision-result {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 86px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.decision-result.block {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.decision-result.review {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.decision-result.approve {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Risk reasons section */
+.risk-reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.simulator-reason-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.simulator-reason {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.simulator-reason > div {
+  flex: 1;
+}
+
+.simulator-reason strong {
+  display: block;
+  font-size: 11px;
+  margin-bottom: 4px;
+  color: #111827;
+}
+
+.simulator-reason span {
+  color: #6b7280;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.simulator-reason b {
+  color: #b91c1c;
+  font-size: 10px;
+}
+
+/* No risk factors */
+.no-risk-factors {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f0fdf4;
+  color: #166534;
+  font-size: 11px;
+}
+
+/* =========================
+   SIMULATOR RESPONSIVE
+========================= */
+
+@media (max-width: 1100px) {
+  .simulator-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .transaction-result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .simulator-info {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,610 @@
+/* =========================
+   INVESTIGATION PAGE
+========================= */
+
+.investigation-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Header */
+.investigation-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  padding-bottom: 8px;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #374151;
+}
+
+.back-button:hover {
+  border-color: #bfdbfe;
+  color: #2563eb;
+}
+
+.investigation-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.investigation-title-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.investigation-title h1 {
+  font-size: 26px;
+  letter-spacing: -0.03em;
+}
+
+.investigation-title p {
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.investigation-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Risk Overview */
+.investigation-risk-overview {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 18px;
+}
+
+.risk-overview-main {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.risk-overview-item {
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.risk-overview-item span {
+  display: block;
+  color: #6b7280;
+  font-size: 10px;
+}
+
+.risk-overview-item strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 22px;
+  color: #111827;
+}
+
+/* Overview Grid */
+.investigation-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.investigation-overview-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.overview-icon {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.investigation-overview-card span {
+  display: block;
+  color: #6b7280;
+  font-size: 10px;
+}
+
+.investigation-overview-card strong {
+  display: block;
+  margin-top: 6px;
+  color: #111827;
+  font-size: 15px;
+}
+
+.investigation-overview-card small {
+  display: block;
+  margin-top: 5px;
+  color: #9ca3af;
+  font-size: 10px;
+}
+
+/* Workspace */
+.investigation-workspace {
+  display: grid;
+  grid-template-columns: 1.7fr 0.9fr;
+  gap: 18px;
+}
+
+.investigation-main,
+.investigation-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Tabs */
+.investigation-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.investigation-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #4b5563;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.investigation-tab.active {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
+}
+
+.investigation-tab-panel,
+.investigation-tab-content {
+  width: 100%;
+}
+
+/* Tab Content Cards */
+.history-cards,
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.history-card,
+.info-item {
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.history-card-icon,
+.device-icon,
+.merchant-icon {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #2563eb;
+  margin-bottom: 12px;
+}
+
+.history-card span,
+.info-item span,
+.device-history-item span,
+.merchant-profile span,
+.current-device-card span {
+  display: block;
+  color: #6b7280;
+  font-size: 10px;
+}
+
+.history-card strong,
+.info-item strong,
+.device-history-item strong,
+.merchant-profile strong,
+.current-device-card strong {
+  display: block;
+  margin-top: 6px;
+  color: #111827;
+  font-size: 14px;
+}
+
+/* Sections */
+.investigation-section {
+  margin-top: 18px;
+}
+
+.investigation-section-header {
+  margin-bottom: 12px;
+}
+
+.investigation-section-header h3 {
+  font-size: 14px;
+}
+
+.investigation-section-header p {
+  margin-top: 4px;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+/* Investigation Table */
+.investigation-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.investigation-table th,
+.investigation-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #f0f2f5;
+  text-align: left;
+  font-size: 11px;
+}
+
+.investigation-table th {
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Reason signals */
+.investigation-reasons,
+.mini-reason,
+.risk-signal,
+.risk-analysis-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.investigation-reasons {
+  padding: 18px;
+}
+
+.decision-panel-header {
+  margin-bottom: 12px;
+}
+
+.decision-panel-header h3 {
+  font-size: 14px;
+}
+
+.decision-panel-header p {
+  color: #9ca3af;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.mini-reason,
+.risk-signal {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.mini-reason strong,
+.risk-signal strong {
+  display: block;
+  font-size: 10px;
+}
+
+.mini-reason span,
+.risk-signal p {
+  display: block;
+  margin-top: 5px;
+  color: #6b7280;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+/* Risk Analysis */
+.risk-analysis-card {
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.risk-analysis-score {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.risk-analysis-score span {
+  color: #6b7280;
+  font-size: 10px;
+}
+
+.risk-analysis-score strong {
+  font-size: 30px;
+  color: #111827;
+}
+
+.risk-analysis-score small {
+  color: #9ca3af;
+  font-size: 10px;
+}
+
+.risk-signal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Device History */
+.current-device-card {
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.device-main {
+  flex: 1;
+}
+
+.device-history {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.device-history-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.device-history-icon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: #f9fafb;
+  color: #4b5563;
+  flex-shrink: 0;
+}
+
+.device-history-info {
+  flex: 1;
+}
+
+.trusted-label {
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.untrusted-label {
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.fingerprint-box {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 10px;
+  font-family: monospace;
+  color: #6b7280;
+  word-break: break-all;
+}
+
+/* Merchant Profile */
+.merchant-profile {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+/* Decision Panel */
+.decision-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.decision-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.decision-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  color: #374151;
+  text-align: left;
+  transition: 0.15s;
+}
+
+.decision-option:hover {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.decision-option.selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.selected-decision {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  margin-top: 14px;
+}
+
+/* Analyst Note */
+.decision-note {
+  margin-top: 18px;
+}
+
+.decision-note label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.decision-note textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid #d9dee7;
+  border-radius: 8px;
+  background: #fff;
+  color: #172033;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.decision-note textarea:focus {
+  border-color: #2563eb;
+}
+
+/* Save Decision */
+.save-decision-button {
+  width: 100%;
+  margin-top: 14px;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #172033;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.save-decision-button:hover {
+  opacity: 0.9;
+}
+
+.save-decision-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================
+   INVESTIGATION RESPONSIVE
+========================= */
+
+@media (max-width: 1100px) {
+  .investigation-risk-overview,
+  .investigation-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .investigation-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .history-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .investigation-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -5,6 +5,7 @@ import {
   CreditCard,
   ShieldAlert,
 } from "lucide-react";
+import "./DashboardPage.css";
 import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/layout/Sidebar";
