@@ -2,8 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.fraud import router as fraud_router
-
-
+from app.api.v1.transactions import router as transaction_router
+from app.api.v1.alerts import router as alert_router
+from app.api.v1.investigations import (
+    router as investigation_router
+)
 app = FastAPI(
     title="Credit Card Fraud Detection API",
     description="AI-powered Credit Card Fraud Detection System",
@@ -24,6 +27,15 @@ app.add_middleware(
 
 app.include_router(
     fraud_router
+)
+app.include_router(
+    transaction_router
+)
+app.include_router(
+    alert_router
+)
+app.include_router(
+    investigation_router
 )
 
 

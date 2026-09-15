@@ -15,6 +15,10 @@ from app.services.transaction_service import (
     save_transaction,
 )
 
+from app.services.alert_service import (
+    create_alert,
+)
+
 
 router = APIRouter(
     prefix="/api/v1/fraud",
@@ -67,12 +71,19 @@ def check_fraud(
     }
 
     saved_transaction = {
-        **transaction_data,
-        **response,
-    }
-
+    **transaction_data,
+    **response,
+    "reasons": result["reasons"],
+}
     save_transaction(
         saved_transaction
     )
+
+    # Create alert for high-risk transaction
+    if result["score"] >= 60:
+
+        create_alert(
+            saved_transaction
+        )
 
     return response
