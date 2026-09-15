@@ -11,6 +11,10 @@ from app.services.fraud_engine import (
     calculate_fraud_risk,
 )
 
+from app.services.transaction_service import (
+    save_transaction,
+)
+
 
 router = APIRouter(
     prefix="/api/v1/fraud",
@@ -39,7 +43,7 @@ def check_fraud(
         * 1000
     )
 
-    return {
+    response = {
         "transaction_id": transaction.transaction_id,
 
         "risk_score": result["score"],
@@ -61,3 +65,14 @@ def check_fraud(
 
         "latency_ms": latency_ms,
     }
+
+    saved_transaction = {
+        **transaction_data,
+        **response,
+    }
+
+    save_transaction(
+        saved_transaction
+    )
+
+    return response
