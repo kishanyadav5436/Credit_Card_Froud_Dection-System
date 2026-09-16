@@ -7,6 +7,9 @@ from app.api.v1.alerts import router as alert_router
 from app.api.v1.investigations import (
     router as investigation_router
 )
+from app.api.v1.customers import (
+    router as customer_router
+)
 app = FastAPI(
     title="Credit Card Fraud Detection API",
     description="AI-powered Credit Card Fraud Detection System",
@@ -37,7 +40,9 @@ app.include_router(
 app.include_router(
     investigation_router
 )
-
+app.include_router(
+    customer_router
+)
 
 @app.get("/")
 def root():
