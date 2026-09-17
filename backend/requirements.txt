@@ -1,0 +1,20 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+pydantic-settings
+
+# Database
+sqlalchemy
+psycopg2-binary
+
+# Data Processing
+pandas
+numpy
+
+# Machine Learning
+scikit-learn
+
+# Authentication
+python-jose
+passlib[bcrypt]
