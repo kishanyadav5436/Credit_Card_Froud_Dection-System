@@ -3,7 +3,8 @@ import { Navigate } from "react-router-dom";
 import DashboardPage from "./pages/DashboardPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import AlertsPage from "./pages/AlertsPage";
-import InvestigationPage from "./pages/investigation/InvestigationPage";
+import InvestigationsPage from "./pages/investigation/InvestigationsPage";
+import InvestigationDetailPage from "./pages/investigation/InvestigationDetailPage";
 import ModelMonitoringPage from "./pages/ModelMonitoringPage";
 import LoginPage from "./pages/LoginPage";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
@@ -37,16 +38,20 @@ const router = [
       },
       {
         path: "/investigations",
-        element: <InvestigationPage />,
+        element: <InvestigationsPage />,
+      },
+      {
+        path: "/investigations/detail",
+        element: <InvestigationDetailPage />,
       },
       {
         path: "/model-monitoring",
         element: <ModelMonitoringPage />,
       },
       {
-  path: "/fraud-simulator",
-  element: <FraudSimulatorPage />,
-},
+        path: "/fraud-simulator",
+        element: <FraudSimulatorPage />,
+      },
     ],
   },
 

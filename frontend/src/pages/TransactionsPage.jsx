@@ -2,6 +2,7 @@
 
 import "./TransactionsPage.css";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   SlidersHorizontal,
@@ -31,6 +32,7 @@ import Drawer from "../components/ui/Drawer";
 import useTransactions from "../hooks/useTransactions";
 
 function TransactionsPage() {
+  const navigate = useNavigate();
   const { data: transactions = [], isLoading } = useTransactions();
 
   const [search, setSearch] = useState("");
@@ -408,12 +410,17 @@ function TransactionsPage() {
 
                           <td>
                             <button
+                              type="button"
                               className="view-button"
                               onClick={() =>
-                                setSelectedTransaction(
-                                  transaction
+                                navigate(
+                                  `/investigations/detail?transactionId=${encodeURIComponent(
+                                    transaction.id
+                                  )}`
                                 )
                               }
+                              aria-label={`View investigation for ${transaction.id}`}
+                              title="View investigation"
                             >
                               <Eye size={16} />
                             </button>
@@ -506,6 +513,9 @@ function FilterSelect({
 ========================================== */
 
 function TransactionDetails({ transaction }) {
+  const device = transaction.device || {};
+  const location = transaction.location || {};
+
   return (
     <div className="transaction-details">
       {/* RISK */}
@@ -648,13 +658,13 @@ function TransactionDetails({ transaction }) {
 
         <DetailRows
           rows={[
-            ["Type", transaction.device.type],
-            ["Device", transaction.device.name],
-            ["Operating System", transaction.device.os],
-            ["Browser", transaction.device.browser],
+            ["Type", device.type || "Unknown"],
+            ["Device", device.name || "Unknown"],
+            ["Operating System", device.os || "Unknown"],
+            ["Browser", device.browser || "Unknown"],
             [
               "Fingerprint",
-              transaction.device.fingerprint,
+              device.fingerprint || "Unknown",
             ],
           ]}
         />
@@ -672,13 +682,13 @@ function TransactionDetails({ transaction }) {
           rows={[
             [
               "Location",
-              `${transaction.location.city}, ${transaction.location.state}`,
+              `${location.city || "Unknown"}, ${location.state || "Unknown"}`,
             ],
-            ["Country", transaction.location.country],
-            ["IP Address", transaction.location.ip],
+            ["Country", location.country || "Unknown"],
+            ["IP Address", location.ip || "Unknown"],
             [
               "Coordinates",
-              `${transaction.location.latitude}, ${transaction.location.longitude}`,
+              `${location.latitude || "Unknown"}, ${location.longitude || "Unknown"}`,
             ],
           ]}
         />
