@@ -1,10 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import {
-  getTransactions,
-  getStoredTransactions,
-} from "../api/transactions";
+import { getTransactions } from "../api/transactions";
 
 function useTransactions() {
   const queryClient = useQueryClient();
@@ -12,14 +9,11 @@ function useTransactions() {
   const query = useQuery({
     queryKey: ["transactions"],
     queryFn: async () => {
-      const transactions = await getTransactions();
-      const storedTransactions =
-        getStoredTransactions();
+      const data = await getTransactions();
 
-      return [
-        ...storedTransactions,
-        ...transactions,
-      ];
+      console.log("REACT TRANSACTIONS:", data);
+
+      return data;
     },
   });
 
