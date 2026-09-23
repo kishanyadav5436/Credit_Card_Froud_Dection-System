@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { ArrowLeft, ShieldAlert } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ShieldAlert } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 import Sidebar from "../../components/layout/Sidebar";
 import TopBar from "../../components/layout/TopBar";
@@ -14,11 +15,13 @@ import "./InvestigationPage.css";
 
 function InvestigationDetailPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const transactionId = searchParams.get("transactionId");
   const [activeTab, setActiveTab] = useState("customer");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [saveSuccess, setSaveSuccess] = useState("");
   const { data: investigation, isLoading, isError, error } =
     useInvestigation(transactionId);
 
@@ -28,11 +31,23 @@ function InvestigationDetailPage() {
     try {
       setSaving(true);
       setSaveError("");
+      setSaveSuccess("");
       await saveInvestigationDecision(
         investigation.investigationId,
         decision,
         note
       );
+      setSaveSuccess(`Decision "${decision}" saved successfully.`);
+      // Refresh both the detail view and the list page
+      queryClient.invalidateQueries({
+        queryKey: ["investigation", transactionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["investigations"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-stats"],
+      });
     } catch (saveFailure) {
       setSaveError(saveFailure.message || "Unable to save the decision.");
     } finally {
@@ -122,11 +137,32 @@ function InvestigationDetailPage() {
 
             <aside className="investigation-sidebar">
               <DecisionPanel
-                currentDecision={investigation.decision || investigation.risk.decision}
+                currentDecision={investigation.decision?.decision || investigation.risk.decision}
                 onSave={handleSave}
                 saving={saving}
               />
-              {saveError && <p className="error-message">{saveError}</p>}
+              {saveSuccess && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "12px 14px",
+                    background: "#f0fdf4",
+                    border: "1px solid #bbf7d0",
+                    borderRadius: "8px",
+                    color: "#166534",
+                    fontSize: "12px",
+                    marginTop: "10px",
+                  }}
+                >
+                  <CheckCircle2 size={15} />
+                  {saveSuccess}
+                </div>
+              )}
+              {saveError && (
+                <p className="error-message">{saveError}</p>
+              )}
             </aside>
           </div>
         </main>

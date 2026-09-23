@@ -2,11 +2,15 @@ import {
   Activity,
   AlertTriangle,
   ArrowRight,
+  CheckCircle2,
   CreditCard,
+  RefreshCw,
   ShieldAlert,
+  TrendingUp,
 } from "lucide-react";
 import "./DashboardPage.css";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 import Sidebar from "../components/layout/Sidebar";
 import TopBar from "../components/layout/TopBar";
@@ -16,74 +20,44 @@ import RiskScoreBadge from "../components/domain/RiskScoreBadge";
 import SeverityTag from "../components/domain/SeverityTag";
 import StatusPill from "../components/domain/StatusPill";
 
-const transactions = [
-  {
-    id: "TXN-98421",
-    customer: "CUS-48291",
-    merchant: "Amazon India",
-    amount: "₹82,450",
-    risk: 97,
-    severity: "Critical",
-    status: "Blocked",
-  },
-  {
-    id: "TXN-98420",
-    customer: "CUS-19382",
-    merchant: "Flipkart",
-    amount: "₹41,280",
-    risk: 91,
-    severity: "High",
-    status: "Review",
-  },
-  {
-    id: "TXN-98419",
-    customer: "CUS-82931",
-    merchant: "Myntra",
-    amount: "₹18,750",
-    risk: 78,
-    severity: "High",
-    status: "Review",
-  },
-  {
-    id: "TXN-98418",
-    customer: "CUS-29183",
-    merchant: "Uber",
-    amount: "₹4,820",
-    risk: 34,
-    severity: "Medium",
-    status: "Approved",
-  },
-];
+import { getDashboardStats } from "../api/dashboard";
 
-const alerts = [
-  {
-    id: "ALT-70021",
-    severity: "Critical",
-    title: "Multiple card attempts",
-    detail: "3 transactions · 2 min ago",
-  },
-  {
-    id: "ALT-70020",
-    severity: "High",
-    title: "Unusual device detected",
-    detail: "TXN-98420 · 5 min ago",
-  },
-  {
-    id: "ALT-70019",
-    severity: "High",
-    title: "Velocity threshold exceeded",
-    detail: "TXN-98417 · 8 min ago",
-  },
-  {
-    id: "ALT-70018",
-    severity: "Medium",
-    title: "Location anomaly",
-    detail: "TXN-98411 · 12 min ago",
-  },
-];
+/* ─── Helpers ───────────────────────────────────────────── */
+
+function safeDecisionToStatus(decision) {
+  if (!decision) return "Approved";
+  if (decision === "BLOCK") return "Blocked";
+  if (decision === "REVIEW") return "Review";
+  return "Approved";
+}
+
+/* ─── Page ──────────────────────────────────────────────── */
 
 function DashboardPage() {
   const navigate = useNavigate();
+
+  const {
+    data: stats,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["dashboard-stats"],
+    queryFn: getDashboardStats,
+    refetchInterval: 30000, // auto-refresh every 30s
+  });
+
+  const transactions = stats?.transactions || {};
+  const alerts = stats?.alerts || {};
+  const investigations = stats?.investigations || {};
+  const recentTransactions = Array.isArray(
+    stats?.recent_transactions
+  )
+    ? stats.recent_transactions
+    : [];
+  const recentAlerts = Array.isArray(stats?.recent_alerts)
+    ? stats.recent_alerts
+    : [];
 
   return (
     <div className="app-shell">
@@ -97,141 +71,198 @@ function DashboardPage() {
             title="Fraud Detection Overview"
             description="Real-time monitoring of transaction risk and fraud activity."
             action={
-              <button
-                type="button"
-                className="primary-button"
-                onClick={() => navigate("/investigations")}
-              >
-                View investigations
-                <ArrowRight size={17} />
-              </button>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => refetch()}
+                  title="Refresh dashboard"
+                >
+                  <RefreshCw size={15} />
+                </button>
+
+                <button
+                  type="button"
+                  className="primary-button"
+                  onClick={() => navigate("/investigations")}
+                >
+                  View investigations
+                  <ArrowRight size={17} />
+                </button>
+              </div>
             }
           />
+
+          {/* STATS GRID */}
+
+          {isLoading ? (
+            <div className="loading-state">
+              Loading dashboard...
+            </div>
+          ) : isError ? (
+            <div
+              style={{
+                padding: "16px",
+                background: "#fee2e2",
+                borderRadius: "10px",
+                color: "#b91c1c",
+                fontSize: "13px",
+                marginBottom: "20px",
+              }}
+            >
+              Failed to load dashboard statistics. Make sure the backend is
+              running.
+            </div>
+          ) : null}
 
           <section className="stats-grid">
             <StatCard
               title="Total Transactions"
-              value="24,821"
-              description="vs. previous 24 hours"
-              trend={12.4}
+              value={
+                isLoading
+                  ? "—"
+                  : (transactions.total ?? 0).toLocaleString()
+              }
+              description="all time from database"
+              trend={null}
               icon={CreditCard}
             />
 
             <StatCard
-              title="Fraud Detected"
-              value="428"
-              description="suspicious transactions"
-              trend={8.2}
+              title="Fraud / Blocked"
+              value={
+                isLoading
+                  ? "—"
+                  : (transactions.blocked ?? 0).toLocaleString()
+              }
+              description={`fraud rate: ${transactions.fraud_rate ?? 0}%`}
+              trend={null}
               icon={ShieldAlert}
             />
 
             <StatCard
-              title="Fraud Rate"
-              value="1.72%"
-              description="vs. previous period"
-              trend={-3.1}
-              icon={Activity}
+              title="Under Review"
+              value={
+                isLoading
+                  ? "—"
+                  : (transactions.review ?? 0).toLocaleString()
+              }
+              description="pending analyst decision"
+              trend={null}
+              icon={AlertTriangle}
             />
 
             <StatCard
-              title="High Risk"
-              value="126"
-              description="transactions requiring review"
-              trend={5.7}
-              icon={AlertTriangle}
+              title="Active Alerts"
+              value={
+                isLoading
+                  ? "—"
+                  : (alerts.active ?? 0).toLocaleString()
+              }
+              description={`${alerts.total ?? 0} total alerts`}
+              trend={null}
+              icon={Activity}
             />
           </section>
 
+          {/* SECONDARY STATS */}
+
+          {!isLoading && (
+            <section
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(3, minmax(0, 1fr))",
+                gap: "16px",
+                marginBottom: "20px",
+              }}
+            >
+              <MiniStat
+                icon={CheckCircle2}
+                label="Approved"
+                value={(transactions.approved ?? 0).toLocaleString()}
+                color="#15803d"
+                bg="#f0fdf4"
+              />
+
+              <MiniStat
+                icon={TrendingUp}
+                label="Avg Risk Score"
+                value={`${transactions.avg_risk_score ?? 0}`}
+                color="#2563eb"
+                bg="#eff6ff"
+              />
+
+              <MiniStat
+                icon={ShieldAlert}
+                label="Open Investigations"
+                value={(investigations.open ?? 0).toLocaleString()}
+                color="#c2410c"
+                bg="#fff7ed"
+              />
+            </section>
+          )}
+
           <section className="dashboard-grid">
-            <div className="panel risk-panel">
-              <div className="panel-header">
-                <div>
-                  <h2>Risk Activity</h2>
-                  <p>Transaction risk over the last 24 hours</p>
-                </div>
-
-                <select className="period-select" defaultValue="Last 24 hours">
-                  <option>Last 24 hours</option>
-                  <option>Last 7 days</option>
-                  <option>Last 30 days</option>
-                </select>
-              </div>
-
-              <div className="risk-chart">
-                <div className="chart-y-axis">
-                  <span>100</span>
-                  <span>75</span>
-                  <span>50</span>
-                  <span>25</span>
-                  <span>0</span>
-                </div>
-
-                <div className="chart-area">
-                  <div className="chart-grid-line" />
-                  <div className="chart-grid-line" />
-                  <div className="chart-grid-line" />
-                  <div className="chart-grid-line" />
-
-                  <svg
-                    className="risk-line"
-                    viewBox="0 0 700 220"
-                    preserveAspectRatio="none"
-                  >
-                    <polyline
-                      points="0,175 55,160 110,168 165,125 220,140 275,95 330,115 385,72 440,92 495,48 550,65 605,35 660,58 700,25"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                    />
-
-                    <polyline
-                      points="0,205 55,200 110,203 165,185 220,192 275,175 330,180 385,160 440,172 495,150 550,158 605,138 660,150 700,130"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      opacity="0.35"
-                    />
-                  </svg>
-
-                  <div className="chart-x-axis">
-                    <span>00:00</span>
-                    <span>06:00</span>
-                    <span>12:00</span>
-                    <span>18:00</span>
-                    <span>Now</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* RECENT ALERTS */}
 
             <div className="panel alerts-panel">
               <div className="panel-header">
                 <div>
-                  <h2>Active Alerts</h2>
-                  <p>Requires analyst attention</p>
+                  <h2>Recent Alerts</h2>
+                  <p>Latest fraud alerts from the database</p>
                 </div>
 
-                <span className="alert-count">18</span>
+                <span className="alert-count">
+                  {alerts.active ?? 0}
+                </span>
               </div>
 
               <div className="alert-list">
-                {alerts.map((alert) => (
-                  <button
-                    key={alert.id}
-                    type="button"
-                    className="alert-item"
-                    onClick={() =>
-                      navigate(`/alerts?alertId=${alert.id}`)
-                    }
+                {recentAlerts.length === 0 ? (
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      color: "#6b7280",
+                      padding: "12px 0",
+                    }}
                   >
-                    <SeverityTag severity={alert.severity} />
+                    No alerts yet. Run a fraud check to
+                    generate alerts.
+                  </p>
+                ) : (
+                  recentAlerts.map((alert) => (
+                    <button
+                      key={alert.alert_id}
+                      type="button"
+                      className="alert-item"
+                      onClick={() =>
+                        navigate(
+                          `/alerts?alertId=${alert.alert_id}`
+                        )
+                      }
+                    >
+                      <SeverityTag
+                        severity={alert.severity || "Low"}
+                      />
 
-                    <div className="alert-info">
-                      <strong>{alert.title}</strong>
-                      <span>{alert.detail}</span>
-                    </div>
-                  </button>
-                ))}
+                      <div className="alert-info">
+                        <strong>
+                          {alert.type || "Fraud Risk Detected"}
+                        </strong>
+
+                        <span>
+                          {alert.transaction_id} ·{" "}
+                          {alert.detected_at
+                            ? new Date(
+                                alert.detected_at
+                              ).toLocaleString()
+                            : ""}
+                        </span>
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
 
               <button
@@ -243,13 +274,82 @@ function DashboardPage() {
                 <ArrowRight size={15} />
               </button>
             </div>
+
+            {/* SUMMARY PANEL */}
+
+            <div className="panel">
+              <div className="panel-header">
+                <div>
+                  <h2>Quick Summary</h2>
+                  <p>System overview from database</p>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "14px",
+                  marginTop: "8px",
+                }}
+              >
+                <SummaryRow
+                  label="High Risk Transactions"
+                  value={transactions.high_risk ?? 0}
+                  badge="risk"
+                />
+
+                <SummaryRow
+                  label="Total Investigations"
+                  value={investigations.total ?? 0}
+                />
+
+                <SummaryRow
+                  label="Total Alerts"
+                  value={alerts.total ?? 0}
+                />
+
+                <SummaryRow
+                  label="Fraud Rate"
+                  value={`${transactions.fraud_rate ?? 0}%`}
+                />
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  marginTop: "20px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <button
+                  className="secondary-button"
+                  onClick={() =>
+                    navigate("/fraud-simulator")
+                  }
+                >
+                  <CreditCard size={14} />
+                  Run fraud check
+                </button>
+
+                <button
+                  className="secondary-button"
+                  onClick={() => navigate("/transactions")}
+                >
+                  All transactions
+                </button>
+              </div>
+            </div>
           </section>
+
+          {/* RECENT TRANSACTIONS TABLE */}
 
           <section className="panel transactions-panel">
             <div className="panel-header">
               <div>
-                <h2>High-Risk Transactions</h2>
-                <p>Latest transactions flagged by the fraud model</p>
+                <h2>Recent Transactions</h2>
+                <p>Latest transactions from the database</p>
               </div>
 
               <button
@@ -261,62 +361,174 @@ function DashboardPage() {
               </button>
             </div>
 
-            <div className="table-wrapper">
-              <table className="transactions-table">
-                <thead>
-                  <tr>
-                    <th>Transaction</th>
-                    <th>Merchant</th>
-                    <th>Amount</th>
-                    <th>Risk Score</th>
-                    <th>Severity</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {transactions.map((transaction) => (
-                    <tr
-                      key={transaction.id}
-                      className="clickable-row"
-                      onClick={() =>
-                        navigate(
-                          `/investigations?transactionId=${transaction.id}`
-                        )
-                      }
-                    >
-                      <td>
-                        <div className="transaction-id">
-                          <strong>{transaction.id}</strong>
-                          <span>{transaction.customer}</span>
-                        </div>
-                      </td>
-
-                      <td>{transaction.merchant}</td>
-
-                      <td>
-                        <strong>{transaction.amount}</strong>
-                      </td>
-
-                      <td>
-                        <RiskScoreBadge score={transaction.risk} />
-                      </td>
-
-                      <td>
-                        <SeverityTag severity={transaction.severity} />
-                      </td>
-
-                      <td>
-                        <StatusPill status={transaction.status} />
-                      </td>
+            {recentTransactions.length === 0 ? (
+              <div
+                style={{
+                  padding: "32px 0",
+                  textAlign: "center",
+                  color: "#6b7280",
+                  fontSize: "13px",
+                }}
+              >
+                No transactions yet. Use the{" "}
+                <strong>Fraud Simulator</strong> to create
+                test transactions.
+              </div>
+            ) : (
+              <div className="table-wrapper">
+                <table className="transactions-table">
+                  <thead>
+                    <tr>
+                      <th>Transaction</th>
+                      <th>Merchant</th>
+                      <th>Amount</th>
+                      <th>Risk Score</th>
+                      <th>Severity</th>
+                      <th>Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+
+                  <tbody>
+                    {recentTransactions.map((transaction) => (
+                      <tr
+                        key={
+                          transaction.transaction_id ||
+                          transaction.id
+                        }
+                        className="clickable-row"
+                        onClick={() =>
+                          navigate(
+                            `/transactions`
+                          )
+                        }
+                      >
+                        <td>
+                          <div className="transaction-id">
+                            <strong>
+                              {transaction.transaction_id ||
+                                transaction.id}
+                            </strong>
+
+                            <span>
+                              {transaction.customer_id ||
+                                transaction.customerId}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td>
+                          {transaction.merchant_id ||
+                            transaction.merchant}
+                        </td>
+
+                        <td>
+                          <strong>
+                            ₹
+                            {Number(
+                              transaction.amount || 0
+                            ).toLocaleString("en-IN")}
+                          </strong>
+                        </td>
+
+                        <td>
+                          <RiskScoreBadge
+                            score={
+                              transaction.risk_score ??
+                              transaction.riskScore ??
+                              0
+                            }
+                          />
+                        </td>
+
+                        <td>
+                          <SeverityTag
+                            severity={
+                              transaction.severity || "Low"
+                            }
+                          />
+                        </td>
+
+                        <td>
+                          <StatusPill
+                            status={safeDecisionToStatus(
+                              transaction.decision
+                            )}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
         </main>
       </div>
+    </div>
+  );
+}
+
+/* ─── Small components ──────────────────────────────────── */
+
+function MiniStat({ icon: Icon, label, value, color, bg }) {
+  return (
+    <div
+      style={{
+        background: bg,
+        borderRadius: "10px",
+        padding: "14px 16px",
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+      }}
+    >
+      <div
+        style={{
+          color,
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <Icon size={18} />
+      </div>
+
+      <div>
+        <div
+          style={{
+            fontSize: "10px",
+            color: "#6b7280",
+            marginBottom: "3px",
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+          }}
+        >
+          {label}
+        </div>
+
+        <strong style={{ fontSize: "18px", color: "#111827" }}>
+          {value}
+        </strong>
+      </div>
+    </div>
+  );
+}
+
+function SummaryRow({ label, value }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "8px 0",
+        borderBottom: "1px solid #f3f4f6",
+      }}
+    >
+      <span style={{ fontSize: "12px", color: "#6b7280" }}>
+        {label}
+      </span>
+
+      <strong style={{ fontSize: "13px" }}>{value}</strong>
     </div>
   );
 }

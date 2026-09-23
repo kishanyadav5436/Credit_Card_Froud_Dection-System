@@ -55,10 +55,10 @@ function TransactionsPage() {
       const searchText = search.toLowerCase();
 
       const matchesSearch =
-        transaction.id.toLowerCase().includes(searchText) ||
-        transaction.customerId.toLowerCase().includes(searchText) ||
-        transaction.customerName.toLowerCase().includes(searchText) ||
-        transaction.merchant.toLowerCase().includes(searchText);
+        (transaction.id || "").toLowerCase().includes(searchText) ||
+        (transaction.customerId || "").toLowerCase().includes(searchText) ||
+        (transaction.customerName || "").toLowerCase().includes(searchText) ||
+        (transaction.merchant || "").toLowerCase().includes(searchText);
 
       /* RISK */
 
@@ -95,7 +95,8 @@ function TransactionsPage() {
       let matchesDate = true;
 
       if (dateFilter === "Today") {
-        matchesDate = transaction.date === "2026-09-06";
+        const today = new Date().toISOString().split("T")[0];
+        matchesDate = transaction.date === today;
       }
 
       /* AMOUNT */
@@ -548,9 +549,9 @@ function TransactionDetails({ transaction }) {
             <span>Decision</span>
 
             <strong
-              className={`decision-${transaction.decision.toLowerCase()}`}
+              className={`decision-${(transaction.decision || 'approve').toLowerCase()}`}
             >
-              {transaction.decision}
+              {transaction.decision || 'N/A'}
             </strong>
           </div>
 
@@ -627,24 +628,28 @@ function TransactionDetails({ transaction }) {
         />
 
         <div className="reason-code-list">
-          {transaction.reasons.map((reason) => (
-            <div
-              className="reason-code"
-              key={reason.code}
-            >
-              <div className="reason-code-header">
-                <strong>{reason.code}</strong>
+          {(transaction.reasons || []).length === 0 ? (
+            <p style={{ color: "#6b7280", fontSize: "14px" }}>No risk factors detected.</p>
+          ) : (
+            (transaction.reasons || []).map((reason) => (
+              <div
+                className="reason-code"
+                key={reason.code || reason}
+              >
+                <div className="reason-code-header">
+                  <strong>{reason.code || reason}</strong>
 
-                <span
-                  className={`reason-impact ${reason.impact.toLowerCase()}`}
-                >
-                  {reason.impact}
-                </span>
+                  <span
+                    className={`reason-impact ${(reason.impact || 'medium').toLowerCase()}`}
+                  >
+                    {reason.impact || 'Medium'}
+                  </span>
+                </div>
+
+                <p>{reason.description || reason.label || reason.code || ''}</p>
               </div>
-
-              <p>{reason.description}</p>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
@@ -704,16 +709,16 @@ function TransactionDetails({ transaction }) {
 
         <div className="customer-card">
           <div className="customer-avatar">
-            {transaction.customerName.charAt(0)}
+            {(transaction.customerName || 'U').charAt(0)}
           </div>
 
           <div>
             <strong>
-              {transaction.customerName}
+              {transaction.customerName || 'Unknown'}
             </strong>
 
             <span>
-              {transaction.customerId}
+              {transaction.customerId || ''}
             </span>
           </div>
         </div>
