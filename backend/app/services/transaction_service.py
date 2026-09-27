@@ -23,6 +23,19 @@ def save_transaction(transaction):
         if existing:
             return get_transaction(transaction["transaction_id"])
 
+        # Ensure customer exists so foreign key constraint is satisfied
+        db.execute(
+            text("""
+                INSERT INTO customers (customer_id, name)
+                VALUES (:customer_id, :name)
+                ON CONFLICT (customer_id) DO NOTHING
+            """),
+            {
+                "customer_id": transaction["customer_id"],
+                "name": f"Customer {transaction['customer_id']}"
+            }
+        )
+
         db.execute(
             text("""
                 INSERT INTO transactions (
@@ -100,16 +113,16 @@ def save_transaction(transaction):
 
         db.commit()
 
-        return get_transaction(
-            transaction["transaction_id"]
-        )
-
     except Exception:
         db.rollback()
         raise
 
     finally:
         db.close()
+
+    return get_transaction(
+        transaction["transaction_id"]
+    )
 
 
 def get_transaction(transaction_id):

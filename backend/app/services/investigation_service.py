@@ -65,14 +65,14 @@ def create_investigation(transaction):
 
         db.commit()
 
-        return get_investigation(investigation_id)
-
     except Exception:
         db.rollback()
         raise
 
     finally:
         db.close()
+
+    return get_investigation(investigation_id)
 
 
 def _build_investigation_from_row(row, transaction):
@@ -217,43 +217,45 @@ def _build_investigation_from_row(row, transaction):
 def get_all_investigations():
     """Fetch all investigations from PostgreSQL, ordered by newest first."""
     db = SessionLocal()
+    rows = []
 
     try:
-        rows = db.execute(
-            text("""
-                SELECT
-                    investigation_id,
-                    transaction_id,
-                    alert_id,
-                    status,
-                    decision,
-                    analyst,
-                    analyst_note,
-                    created_at,
-                    updated_at
-                FROM investigations
-                ORDER BY created_at DESC
-            """)
-        ).mappings().all()
-
-        results = []
-
-        for row in rows:
-            row_dict = dict(row)
-            txn = get_transaction(row_dict["transaction_id"])
-            results.append(
-                _build_investigation_from_row(row_dict, txn)
-            )
-
-        return results
-
+        rows = [
+            dict(r)
+            for r in db.execute(
+                text("""
+                    SELECT
+                        investigation_id,
+                        transaction_id,
+                        alert_id,
+                        status,
+                        decision,
+                        analyst,
+                        analyst_note,
+                        created_at,
+                        updated_at
+                    FROM investigations
+                    ORDER BY created_at DESC
+                """)
+            ).mappings().all()
+        ]
     finally:
         db.close()
+
+    results = []
+    for row_dict in rows:
+        txn = get_transaction(row_dict["transaction_id"])
+        results.append(
+            _build_investigation_from_row(row_dict, txn)
+        )
+
+    return results
 
 
 def get_investigation(investigation_id):
     """Fetch a single investigation by ID from PostgreSQL."""
     db = SessionLocal()
+    row_dict = None
 
     try:
         row = db.execute(
@@ -274,16 +276,17 @@ def get_investigation(investigation_id):
             {"investigation_id": investigation_id},
         ).mappings().first()
 
-        if not row:
-            return None
-
-        row_dict = dict(row)
-        txn = get_transaction(row_dict["transaction_id"])
-
-        return _build_investigation_from_row(row_dict, txn)
+        if row:
+            row_dict = dict(row)
 
     finally:
         db.close()
+
+    if not row_dict:
+        return None
+
+    txn = get_transaction(row_dict["transaction_id"])
+    return _build_investigation_from_row(row_dict, txn)
 
 
 def save_investigation_decision(
@@ -337,11 +340,11 @@ def save_investigation_decision(
 
         db.commit()
 
-        return get_investigation(investigation_id)
-
     except Exception:
         db.rollback()
         raise
 
     finally:
         db.close()
+
+    return get_investigation(investigation_id)

@@ -1,0 +1,22 @@
+{
+  "model_version": "xgb-ulb-v1",
+  "model_type": "XGBClassifier",
+  "training_status": "trained",
+  "dataset": "ULB Credit Card Fraud Detection",
+  "training_rows": 283726,
+  "n_features": 30,
+  "feature_names": [
+    "Time",
+    "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10",
+    "V11", "V12", "V13", "V14", "V15", "V16", "V17", "V18", "V19", "V20",
+    "V21", "V22", "V23", "V24", "V25", "V26", "V27", "V28",
+    "Amount"
+  ],
+  "precision": 0.9157,
+  "recall": 0.8,
+  "f1": 0.8539,
+  "roc_auc": 0.9768,
+  "pr_auc": 0.8203,
+  "confusion_matrix": [[56644, 7], [19, 76]],
+  "trained_at": "2026-09-27"
+}

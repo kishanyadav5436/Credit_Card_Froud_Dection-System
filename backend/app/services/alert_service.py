@@ -66,14 +66,14 @@ def create_alert(transaction):
 
         db.commit()
 
-        return get_alert(alert_id)
-
     except Exception:
         db.rollback()
         raise
 
     finally:
         db.close()
+
+    return get_alert(alert_id)
 
 
 def get_all_alerts():

@@ -13,7 +13,13 @@ pandas
 numpy
 
 # Machine Learning
+# NOTE: xgboost is pinned to 2.0.3 for pickle compatibility with the
+# trained model (xgb_fraud_model.pkl) which was serialized in Google
+# Colab with XGBoost 2.0.x.  Do not upgrade without re-exporting the
+# model in the new version's native format first.
+xgboost==2.0.3
 scikit-learn
+joblib
 
 # Authentication
 python-jose

@@ -20,5 +20,13 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
+    # ── ML Hybrid Engine Weights ─────────────────────────────────────────────
+    # Rule engine weight in the hybrid final_score formula.
+    # When only rule scoring is available (no ML features), rule score is used
+    # directly.  When both are available:
+    #   final_score = rule_score * RULE_WEIGHT + ml_score * ML_WEIGHT
+    RULE_WEIGHT: float = 0.6
+    ML_WEIGHT: float = 0.4
+
 
 settings = Settings()

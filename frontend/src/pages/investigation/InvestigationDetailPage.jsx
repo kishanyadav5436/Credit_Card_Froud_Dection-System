@@ -114,7 +114,10 @@ function InvestigationDetailPage() {
           <div className="investigation-overview-grid">
             <Overview label="Risk score" value={`${investigation.risk.score}/100`} />
             <Overview label="Severity" value={investigation.risk.severity} />
-            <Overview label="Decision" value={investigation.risk.decision} />
+            <Overview
+              label="Decision"
+              value={investigation.decision?.decision || investigation.risk.decision}
+            />
             <Overview label="Status" value={investigation.status} />
           </div>
 

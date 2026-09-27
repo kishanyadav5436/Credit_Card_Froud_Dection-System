@@ -106,8 +106,8 @@ function normalizeInvestigation(
       investigation.status || "Open",
 
     decision:
-      risk.decision ||
       investigation.decision ||
+      risk.decision ||
       null,
 
     analyst:
