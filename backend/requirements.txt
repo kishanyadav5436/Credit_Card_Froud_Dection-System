@@ -24,3 +24,7 @@ joblib
 # Authentication
 python-jose
 passlib[bcrypt]
+
+# Testing
+pytest
+httpx

@@ -23,6 +23,7 @@ import PageHeader from "../components/layout/PageHeader";
 import SeverityTag from "../components/domain/SeverityTag";
 import RiskScoreBadge from "../components/domain/RiskScoreBadge";
 import AlertTypeBadge from "../components/domain/AlertTypeBadge";
+import { createInvestigation } from "../api/investigations";
 
 import Drawer from "../components/ui/Drawer";
 
@@ -447,7 +448,12 @@ function AlertDetails({ alert, navigate }) {
     alert.customer ||
     "Unknown Customer";
 
-  const handleInvestigation = () => {
+  const handleInvestigation = async () => {
+    try {
+      await createInvestigation({ transaction_id: alert.transactionId, alert_id: alert.id });
+    } catch (err) {
+      console.error("Failed to create investigation", err);
+    }
     navigate(
       `/investigations?transactionId=${encodeURIComponent(
         alert.transactionId

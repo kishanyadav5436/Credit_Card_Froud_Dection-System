@@ -20,18 +20,20 @@ from app.api.v1.dashboard import (
     router as dashboard_router
 )
 
+import os
+
 app = FastAPI(
     title="Credit Card Fraud Detection API",
     description="AI-powered Credit Card Fraud Detection System",
     version="1.0.0",
 )
 
+cors_origins_env = os.environ.get("CORS_ORIGINS", "http://localhost:5173")
+allow_origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173"
-    ],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

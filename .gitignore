@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Production build output
+dist/
+build/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Databases & SQLite
+*.sqlite
+*.sqlite3
+*.db
+.dbdata/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Datasets (Local non-committed CSVs)
+creditcard.csv
+train_transaction.csv
+train_identity.csv
+test_transaction.csv
+test_identity.csv
+*.csv
