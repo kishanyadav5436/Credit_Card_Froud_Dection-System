@@ -17,7 +17,9 @@ logger = logging.getLogger(__name__)
 db_url = settings.DATABASE_URL
 
 # Standardize PostgreSQL URL to use pg8000 pure python driver
-if db_url.startswith("postgresql://"):
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+pg8000://", 1)
+elif db_url.startswith("postgresql://"):
     db_url = db_url.replace("postgresql://", "postgresql+pg8000://", 1)
 elif db_url.startswith("postgresql+psycopg2://"):
     db_url = db_url.replace("postgresql+psycopg2://", "postgresql+pg8000://", 1)
