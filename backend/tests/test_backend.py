@@ -1,7 +1,12 @@
+import uuid
+
+import bcrypt
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
+
+from app.database.connection import SessionLocal
 from app.main import app
-import uuid
 
 client = TestClient(app)
 
@@ -136,7 +141,7 @@ def test_investigation_creation_and_persistence():
     assert inv_response.status_code == 200
     inv_data = inv_response.json()
     inv_id = inv_data["investigation_id"]
-    
+
     # Check it doesn't create duplicate
     inv_response2 = client.post("/api/v1/investigations", json=inv_req)
     assert inv_response2.status_code == 200
@@ -151,3 +156,141 @@ def test_investigation_creation_and_persistence():
     dec_response = client.post(f"/api/v1/investigations/{inv_id}/decision", json=dec_req)
     assert dec_response.status_code == 200
     assert dec_response.json()["decision"] == "ESCALATE"
+
+
+def test_auth_registration_success_and_duplicate_email():
+    email = f"auth_user_{uuid.uuid4().hex[:8]}@example.com"
+    payload = {"name": "Auth User", "email": email, "password": "StrongPass123!"}
+
+    response = client.post("/api/v1/auth/register", json=payload)
+    assert response.status_code == 201, response.text
+    body = response.json()
+    assert body["email"] == email.lower()
+    assert "password_hash" not in body
+
+    dup_response = client.post("/api/v1/auth/register", json=payload)
+    assert dup_response.status_code == 400
+
+
+def test_auth_login_and_jwt_me():
+    email = f"auth_login_{uuid.uuid4().hex[:8]}@example.com"
+    client.post("/api/v1/auth/register", json={
+        "name": "Login User",
+        "email": email,
+        "password": "StrongPass123!",
+    })
+
+    response = client.post("/api/v1/auth/login", json={
+        "email": email,
+        "password": "StrongPass123!",
+    })
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert "access_token" in body
+    assert body["token_type"] == "bearer"
+    token = body["access_token"]
+
+    me_response = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me_response.status_code == 200
+    assert me_response.json()["email"] == email.lower()
+
+
+def test_user_cannot_access_admin_api_and_admin_can():
+    email = f"auth_user_admin_{uuid.uuid4().hex[:8]}@example.com"
+    reg = client.post("/api/v1/auth/register", json={
+        "name": "Regular User",
+        "email": email,
+        "password": "StrongPass123!",
+    })
+    user_token = reg.json()["token_type"] if False else None
+    login = client.post("/api/v1/auth/login", json={"email": email, "password": "StrongPass123!"})
+    token = login.json()["access_token"]
+
+    blocked = client.get("/api/v1/admin/users", headers={"Authorization": f"Bearer {token}"})
+    assert blocked.status_code == 403
+
+    with SessionLocal() as db:
+        db.execute(
+            text("INSERT INTO users (name, email, password_hash, role, is_active, is_verified) VALUES (:name, :email, :password_hash, :role, TRUE, TRUE) ON CONFLICT (email) DO UPDATE SET role = :role"),
+            {
+                "name": "Seed Admin",
+                "email": "admin_seed@example.com",
+                "password_hash": bcrypt.hashpw(b"StrongPass123!", bcrypt.gensalt()).decode("utf-8"),
+                "role": "admin",
+            },
+        )
+        db.commit()
+
+    admin_login = client.post("/api/v1/auth/login", json={
+        "email": "admin_seed@example.com",
+        "password": "StrongPass123!",
+    })
+    assert admin_login.status_code == 200
+    admin_token = admin_login.json()["access_token"]
+
+    allowed = client.get("/api/v1/admin/users", headers={"Authorization": f"Bearer {admin_token}"})
+    assert allowed.status_code == 200
+
+
+def test_forgot_password_reset_password_and_invalid_token():
+    email = f"reset_user_{uuid.uuid4().hex[:8]}@example.com"
+    client.post("/api/v1/auth/register", json={
+        "name": "Reset User",
+        "email": email,
+        "password": "StrongPass123!",
+    })
+
+    forgot = client.post("/api/v1/auth/forgot-password", json={"email": email})
+    assert forgot.status_code == 200
+    assert "If the account exists" in forgot.json()["message"]
+
+    with SessionLocal() as db:
+        token_row = db.execute(
+            text("SELECT token FROM password_reset_tokens WHERE user_id = (SELECT id FROM users WHERE email = :email) ORDER BY created_at DESC LIMIT 1"),
+            {"email": email},
+        ).scalar_one_or_none()
+        assert token_row is not None
+        token = token_row
+
+    bad_reset = client.post("/api/v1/auth/reset-password", json={
+        "token": "bad-token",
+        "new_password": "NewStrongPass456!",
+    })
+    assert bad_reset.status_code == 400
+
+    success = client.post("/api/v1/auth/reset-password", json={
+        "token": token,
+        "new_password": "NewStrongPass456!",
+    })
+    assert success.status_code == 200, success.text
+
+    login_after_reset = client.post("/api/v1/auth/login", json={
+        "email": email,
+        "password": "NewStrongPass456!",
+    })
+    assert login_after_reset.status_code == 200
+
+
+def test_deactivated_user_cannot_authenticate_and_invalid_password_rejected():
+    email = f"deact_user_{uuid.uuid4().hex[:8]}@example.com"
+    client.post("/api/v1/auth/register", json={
+        "name": "Deactivated User",
+        "email": email,
+        "password": "StrongPass123!",
+    })
+
+    with SessionLocal() as db:
+        db.execute(text("UPDATE users SET is_active = FALSE WHERE email = :email"), {"email": email})
+        db.commit()
+
+    invalid = client.post("/api/v1/auth/login", json={
+        "email": email,
+        "password": "WrongPass123!",
+    })
+    assert invalid.status_code == 401
+
+    blocked = client.post("/api/v1/auth/login", json={
+        "email": email,
+        "password": "StrongPass123!",
+    })
+    assert blocked.status_code == 401

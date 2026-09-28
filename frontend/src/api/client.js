@@ -22,6 +22,11 @@ async function request(endpoint, options = {}) {
     }
   );
 
+  if (response.status === 401) {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("fraudguard-user");
+  }
+
   if (!response.ok) {
     let message = `API Error: ${response.status}`;
 

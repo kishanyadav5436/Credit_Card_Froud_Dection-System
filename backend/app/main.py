@@ -19,6 +19,9 @@ from app.api.v1.feedback import (
 from app.api.v1.dashboard import (
     router as dashboard_router
 )
+from app.api.v1.auth import router as auth_router
+from app.api.v1.admin import router as admin_router
+from app.core.security import ensure_auth_tables, ensure_bootstrap_admin
 
 import os
 
@@ -64,6 +67,11 @@ app.include_router(
 app.include_router(
     dashboard_router
 )
+app.include_router(auth_router)
+app.include_router(admin_router)
+
+ensure_auth_tables()
+ensure_bootstrap_admin()
 
 
 @app.get("/")

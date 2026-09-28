@@ -16,9 +16,11 @@ class Settings(BaseSettings):
         "postgresql+psycopg2://postgres:YOUR_PASSWORD@localhost:5432/fraudguard"
     )
 
-    SECRET_KEY: str = "change-me-in-production"
+    SECRET_KEY: str = "your-super-secret-key"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    RESET_TOKEN_EXPIRE_MINUTES: int = 30
+    RESET_TOKEN_EXPIRE_MINUTES: int = 30
 
     # ── ML Hybrid Engine Weights ─────────────────────────────────────────────
     # Rule engine weight in the hybrid final_score formula.

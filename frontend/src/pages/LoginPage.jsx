@@ -1,11 +1,11 @@
 import { useState } from "react";
 import "./LoginPage.css";
 import { AlertCircle, ShieldAlert } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { login } from "../api/auth";
 
-function LoginPage() {
+function LoginPage({ adminMode = false }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -14,12 +14,10 @@ function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const redirectPath =
-    location.state?.from?.pathname || "/dashboard";
+  const redirectPath = location.state?.from?.pathname || (adminMode ? "/admin/overview" : "/dashboard");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     setError("");
 
     if (!email.trim() || !password) {
@@ -29,8 +27,11 @@ function LoginPage() {
 
     try {
       setLoading(true);
+      const user = await login(email.trim(), password);
 
-      await login(email.trim(), password);
+      if (adminMode && String(user?.role || "").toLowerCase() !== "admin") {
+        throw new Error("This account is not authorized for the admin area.");
+      }
 
       navigate(redirectPath, { replace: true });
     } catch (error) {
@@ -49,12 +50,12 @@ function LoginPage() {
           </div>
 
           <h1>FraudGuard</h1>
-          <p>Risk Intelligence Platform</p>
+          <p>{adminMode ? "Administrative access" : "Risk Intelligence Platform"}</p>
         </div>
 
         <div className="login-heading">
-          <h2>Welcome back</h2>
-          <p>Sign in to access the fraud monitoring system.</p>
+          <h2>{adminMode ? "Admin sign in" : "Welcome back"}</h2>
+          <p>{adminMode ? "Authorized administrators only." : "Sign in to access the fraud monitoring system."}</p>
         </div>
 
         {error && (
@@ -67,50 +68,28 @@ function LoginPage() {
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
-
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="Enter your email"
-              autoComplete="email"
-            />
+            <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Enter your email" autoComplete="email" />
           </div>
 
           <div className="form-group">
             <label htmlFor="password">Password</label>
-
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) =>
-                setPassword(event.target.value)
-              }
-              placeholder="Enter your password"
-              autoComplete="current-password"
-            />
+            <input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" autoComplete="current-password" />
           </div>
 
-          <button
-            type="submit"
-            className="login-button"
-            disabled={loading}
-          >
-            {loading ? "Signing in..." : "Sign In"}
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? "Signing in..." : adminMode ? "Admin sign in" : "Sign In"}
           </button>
         </form>
 
-        <div className="demo-credentials">
-          <strong>Demo credentials</strong>
-          <span>admin@fraudguard.com</span>
-          <span>admin123</span>
-        </div>
+        {!adminMode && (
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "12px", fontSize: "14px" }}>
+            <Link to="/forgot-password">Forgot password?</Link>
+            <Link to="/register">Create account</Link>
+          </div>
+        )}
       </div>
     </main>
   );
 }
-
 
 export default LoginPage;

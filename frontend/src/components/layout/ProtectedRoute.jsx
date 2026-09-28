@@ -1,11 +1,23 @@
+import { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { getCurrentUser } from "../../api/auth";
+
+import useSessionStore from "../../store/sessionStore";
 
 function ProtectedRoute() {
   const location = useLocation();
-  const user = getCurrentUser();
+  const { currentUser, loading, hydrate } = useSessionStore();
 
-  if (!user) {
+  useEffect(() => {
+    if (loading) {
+      hydrate();
+    }
+  }, [hydrate, loading]);
+
+  if (loading) {
+    return <div className="page-content">Loading...</div>;
+  }
+
+  if (!currentUser) {
     return (
       <Navigate
         to="/login"
