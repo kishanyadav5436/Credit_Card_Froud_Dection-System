@@ -37,6 +37,9 @@ def create_new_investigation(
             detail="Transaction not found",
         )
 
+    if data.alert_id:
+        transaction["alert_id"] = data.alert_id
+
     investigation = (
         create_investigation(
             transaction

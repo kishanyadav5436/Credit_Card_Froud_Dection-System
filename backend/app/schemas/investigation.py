@@ -4,6 +4,7 @@ from typing import Optional, Any
 
 class InvestigationCreate(BaseModel):
     transaction_id: str
+    alert_id: Optional[str] = None
 
 
 class InvestigationResponse(BaseModel):
