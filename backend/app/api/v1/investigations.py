@@ -16,6 +16,10 @@ from app.services.investigation_service import (
     save_investigation_decision,
 )
 
+from app.services.feedback_service import (
+    save_feedback,
+)
+
 router = APIRouter(
     prefix="/api/v1/investigations",
     tags=["Investigations"],
@@ -114,6 +118,14 @@ def save_decision(
             status_code=404,
             detail="Investigation not found",
         )
+
+    if decision in ["APPROVE", "BLOCK"]:
+        save_feedback({
+            "transaction_id": investigation["transaction"]["id"],
+            "actual_outcome": "Legitimate" if decision == "APPROVE" else "Fraud",
+            "analyst": data.analyst,
+            "comment": data.note,
+        })
 
     return {
         "message": "Decision saved successfully",

@@ -42,3 +42,11 @@ htmlcov/
 # OS files
 .DS_Store
 Thumbs.db
+
+# ML model artifacts (large binary files — regenerate via training scripts)
+# XGBoost model: kept in app/ml/ (tracked — pre-trained on ULB dataset)
+# RF model: generated locally — NOT committed (run: python ml/train_model.py)
+backend/ml/rf_model.pkl
+backend/ml/rf_scaler.pkl
+ml/rf_model.pkl
+ml/rf_scaler.pkl

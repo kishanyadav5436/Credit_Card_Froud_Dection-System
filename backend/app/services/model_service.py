@@ -1,20 +1,25 @@
 """
-Model Status Service
-====================
+Model Status Service (Phase 8 — Model Monitoring)
+===================================================
 
 Provides get_model_status() which returns:
-  - Real XGBoost model metadata loaded from metrics.json (via predict module)
+  - XGBoost ULB model metadata (real metrics from metrics.json)
+  - Random Forest app model metadata (synthetic-data metrics, clearly labeled)
   - Real-time prediction statistics from the transactions database
-  - The existing drift and version history metadata
+  - Version history
 
-The fake hardcoded model metrics have been replaced with actual values from
-the trained XGBoost model (xgb-ulb-v1).
+IMPORTANT:
+  - XGBoost metrics come from real ULB dataset evaluation (Colab).
+  - RF metrics come from synthetic dataset training — clearly labeled as such.
+  - Live prediction counts are real DB queries.
+  - No production metrics are fabricated.
 """
 
 from sqlalchemy import text
 
 from app.database.connection import SessionLocal
 from app.ml.predict import get_model_info, is_model_available
+from app.ml.model import get_rf_model_info, is_rf_model_available
 
 
 def _get_prediction_stats():
@@ -81,49 +86,124 @@ def _get_prediction_stats():
 
 
 def get_model_status():
-    """Return model status with actual XGBoost metrics and live DB stats."""
-    ml_info = get_model_info()
+    """
+    Return full model status for GET /api/v1/models/status.
+
+    Includes:
+      - models.xgboost : ULB XGBoost model (real dataset metrics)
+      - models.random_forest : App-level RF model (synthetic data metrics)
+      - predictions : Live DB counts
+      - performance : Aggregated live metrics
+    """
+    xgb_info = get_model_info()
+    rf_info = get_rf_model_info()
     stats = _get_prediction_stats()
-    metrics = ml_info.get("metrics", {})
+
+    xgb_metrics = xgb_info.get("metrics", {})
+    rf_metrics = rf_info.get("metrics", {})
+
+    overall_available = xgb_info["model_available"] or rf_info["model_available"]
 
     return {
-        # ── ML model identity ────────────────────────────────────────────────
-        "model_name": "XGBoost Fraud Detection (ULB)",
-        "model_version": ml_info["model_version"],
-        "model_type": ml_info["model_type"],
-        "training_status": ml_info["training_status"],
-        "model_available": ml_info["model_available"],
+        # ── System status ─────────────────────────────────────────────────────
+        "status": "Production" if overall_available else "Degraded",
+        "last_updated": "2026-10-04",
+        "architecture": "Hybrid (Rule Engine + Random Forest + XGBoost)",
 
-        # ── Actual trained metrics (from metrics.json) ───────────────────────
-        # Values come from the Colab evaluation run — NOT fabricated.
+        # ── Primary model identity (RF — runs on every request) ───────────────
+        "model_name": "Hybrid Fraud Detection System",
+        "model_version": rf_info["model_version"],
+        "model_type": "HybridEnsemble",
+        "training_status": "trained",
+        "model_available": overall_available,
+
+        # ── Individual model status ───────────────────────────────────────────
+        "models": {
+            "random_forest": {
+                "model_name": "Random Forest (App-Level Features)",
+                "model_version": rf_info["model_version"],
+                "model_type": rf_info["model_type"],
+                "training_status": rf_info["training_status"],
+                "model_available": rf_info["model_available"],
+                "load_error": rf_info.get("load_error"),
+                "n_features": rf_info["n_features"],
+                "feature_names": rf_info["feature_names"],
+                "dataset_note": (
+                    "SYNTHETIC DATA — Trained for development/demo purposes. "
+                    "NOT real banking fraud data."
+                ),
+                # Metrics from synthetic dataset evaluation — clearly labeled
+                "performance": {
+                    "precision": round((rf_metrics.get("precision") or 0) * 100, 2),
+                    "recall": round((rf_metrics.get("recall") or 0) * 100, 2),
+                    "f1_score": round((rf_metrics.get("f1") or 0) * 100, 2),
+                    "roc_auc": round((rf_metrics.get("roc_auc") or 0) * 100, 2),
+                    "pr_auc": round((rf_metrics.get("pr_auc") or 0) * 100, 2),
+                },
+                "metrics": {
+                    "precision": rf_metrics.get("precision"),
+                    "recall": rf_metrics.get("recall"),
+                    "f1": rf_metrics.get("f1"),
+                    "roc_auc": rf_metrics.get("roc_auc"),
+                    "pr_auc": rf_metrics.get("pr_auc"),
+                },
+                "runs_on": "Every /fraud/check request (no special vector required)",
+            },
+            "xgboost_ulb": {
+                "model_name": "XGBoost Fraud Detection (ULB Dataset)",
+                "model_version": xgb_info["model_version"],
+                "model_type": xgb_info["model_type"],
+                "training_status": xgb_info["training_status"],
+                "model_available": xgb_info["model_available"],
+                "load_error": xgb_info.get("load_error"),
+                "n_features": xgb_info["n_features"],
+                "dataset_note": (
+                    "Trained on the ULB Credit Card Fraud Detection dataset "
+                    "(283,726 rows). Real dataset — NOT synthetic."
+                ),
+                # Metrics from REAL ULB dataset evaluation (Google Colab)
+                "performance": {
+                    "precision": round((xgb_metrics.get("precision") or 0) * 100, 2),
+                    "recall": round((xgb_metrics.get("recall") or 0) * 100, 2),
+                    "f1_score": round((xgb_metrics.get("f1") or 0) * 100, 2),
+                    "roc_auc": round((xgb_metrics.get("roc_auc") or 0) * 100, 2),
+                    "pr_auc": round((xgb_metrics.get("pr_auc") or 0) * 100, 2),
+                },
+                "metrics": {
+                    "precision": xgb_metrics.get("precision"),
+                    "recall": xgb_metrics.get("recall"),
+                    "f1": xgb_metrics.get("f1"),
+                    "roc_auc": xgb_metrics.get("roc_auc"),
+                    "pr_auc": xgb_metrics.get("pr_auc"),
+                },
+                "runs_on": "Only when ulb_features (30-float ULB vector) is supplied",
+            },
+        },
+
+        # ── Combined performance (RF model — primary scorer) ──────────────────
         "performance": {
-            "precision": round((metrics.get("precision") or 0) * 100, 2),
-            "recall": round((metrics.get("recall") or 0) * 100, 2),
-            "f1_score": round((metrics.get("f1") or 0) * 100, 2),
-            "roc_auc": round((metrics.get("roc_auc") or 0) * 100, 2),
-            "pr_auc": round((metrics.get("pr_auc") or 0) * 100, 2),
-            # False positive rate derived from confusion matrix:
-            # FP/(FP+TN) = 7/(7+56644)
-            "false_positive_rate": round(7 / (7 + 56644) * 100, 4),
+            "precision": round((rf_metrics.get("precision") or 0) * 100, 2),
+            "recall": round((rf_metrics.get("recall") or 0) * 100, 2),
+            "f1_score": round((rf_metrics.get("f1") or 0) * 100, 2),
+            "roc_auc": round((rf_metrics.get("roc_auc") or 0) * 100, 2),
+            "pr_auc": round((rf_metrics.get("pr_auc") or 0) * 100, 2),
+            "note": "Metrics from synthetic training data — not production metrics",
         },
 
-        # ── Raw metrics (fractional, for API consumers that prefer 0-1) ──────
         "metrics": {
-            "precision": metrics.get("precision"),
-            "recall": metrics.get("recall"),
-            "f1": metrics.get("f1"),
-            "roc_auc": metrics.get("roc_auc"),
-            "pr_auc": metrics.get("pr_auc"),
+            "precision": rf_metrics.get("precision"),
+            "recall": rf_metrics.get("recall"),
+            "f1": rf_metrics.get("f1"),
+            "roc_auc": rf_metrics.get("roc_auc"),
+            "pr_auc": rf_metrics.get("pr_auc"),
         },
 
-        # ── Feature info ─────────────────────────────────────────────────────
-        "n_features": ml_info["n_features"],
-        "feature_names": ml_info["feature_names"],
+        # ── Feature info (RF model) ───────────────────────────────────────────
+        "n_features": rf_info["n_features"],
+        "feature_names": rf_info["feature_names"],
+        "load_error": rf_info.get("load_error"),
 
-        # ── Load error (None if model loaded OK) ─────────────────────────────
-        "load_error": ml_info.get("load_error"),
-
-        # ── Live prediction counts from DB ───────────────────────────────────
+        # ── Live prediction counts from DB ────────────────────────────────────
         "predictions": {
             "total": stats["total"],
             "fraud_detected": stats["fraud_detected"],
@@ -136,14 +216,7 @@ def get_model_status():
         "avg_risk_score": stats["avg_risk"],
         "p95_latency_ms": stats["p95_latency"],
 
-        # ── Deployment info ───────────────────────────────────────────────────
-        "status": "Production" if ml_info["model_available"] else "Degraded",
-        "last_updated": "2026-09-27",
-        "version": ml_info["model_version"],
-
-        # ── Feature drift (static — no live data pipeline yet) ───────────────
-        # Note: V1-V28 are anonymised PCA features from ULB dataset;
-        # they are NOT the same as velocity/device/location.
+        # ── Feature drift (no live pipeline yet) ──────────────────────────────
         "drift": {
             "feature_drift": 0.0,
             "model_drift": 0.0,
@@ -151,36 +224,39 @@ def get_model_status():
             "status": "No live feature pipeline yet",
         },
         "feature_drift": [
-            {
-                "feature": "Amount (ULB)",
-                "drift": 0.0,
-                "status": "No live pipeline",
-            },
-            {
-                "feature": "Time (ULB)",
-                "drift": 0.0,
-                "status": "No live pipeline",
-            },
-            {
-                "feature": "V1-V28 (PCA, ULB)",
-                "drift": 0.0,
-                "status": "No live pipeline",
-            },
+            {"feature": "amount", "drift": 0.0, "status": "No live pipeline"},
+            {"feature": "velocity", "drift": 0.0, "status": "No live pipeline"},
+            {"feature": "is_new_device", "drift": 0.0, "status": "No live pipeline"},
+            {"feature": "location_mismatch", "drift": 0.0, "status": "No live pipeline"},
+            {"feature": "amount_deviation", "drift": 0.0, "status": "No live pipeline"},
         ],
 
         # ── Version history ───────────────────────────────────────────────────
+        "version": rf_info["model_version"],
         "versions": [
             {
-                "version": ml_info["model_version"],
+                "version": rf_info["model_version"],
+                "deployed_at": "2026-10-04",
+                "status": "Production" if rf_info["model_available"] else "Degraded",
+                "model": "RandomForest (App-Level Features)",
+                "accuracy": round((rf_metrics.get("roc_auc") or 0) * 100, 2),
+                "note": "Synthetic data — demo model",
+            },
+            {
+                "version": xgb_info["model_version"],
                 "deployed_at": "2026-09-27",
-                "status": "Production" if ml_info["model_available"] else "Degraded",
-                "accuracy": round((metrics.get("roc_auc") or 0) * 100, 2),
+                "status": "Production" if xgb_info["model_available"] else "Degraded",
+                "model": "XGBoost (ULB Dataset)",
+                "accuracy": round((xgb_metrics.get("roc_auc") or 0) * 100, 2),
+                "note": "Real ULB dataset — premium path (requires ulb_features)",
             },
             {
                 "version": "fraud-engine-v1",
                 "deployed_at": "2026-09-17",
                 "status": "Rule Engine (Active)",
+                "model": "Rule-Based Engine",
                 "accuracy": 96.4,
+                "note": "Always active — deterministic rules",
             },
         ],
     }
