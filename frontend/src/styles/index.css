@@ -387,6 +387,9 @@ a {
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat-title {
