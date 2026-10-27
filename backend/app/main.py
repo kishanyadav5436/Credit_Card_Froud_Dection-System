@@ -1,6 +1,7 @@
+import os
+os.environ.setdefault("SQLALCHEMY_DISABLE_CYTHON", "1")
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from app.api.v1.fraud import router as fraud_router
 from app.api.v1.transactions import router as transaction_router
 from app.api.v1.alerts import router as alert_router
